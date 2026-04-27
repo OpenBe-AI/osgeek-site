@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>OpenBe Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#09090b",
+              panel: "#111114",
+              line: "rgba(255,255,255,.1)",
+              electric: "#3b82f6",
+              teal: "#2dd4bf",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+              code: ["Fira Code", "monospace"],
+            },
+            boxShadow: {
+              glow: "0 24px 80px rgba(59, 130, 246, .18)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html,
+      body {
+        min-height: 100%;
+        background:
+          radial-gradient(circle at 18% -10%, rgba(59, 130, 246, 0.22), transparent 28rem),
+          radial-gradient(circle at 86% 8%, rgba(45, 212, 191, 0.16), transparent 26rem),
+          #09090b;
+      }
+
+      .thin-scroll::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+      }
+
+      .thin-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+      }
+
+      .field {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.72rem 0.82rem;
+        color: white;
+        outline: none;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .field:focus {
+        border-color: rgba(45, 212, 191, 0.72);
+        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+        background: rgba(255, 255, 255, 0.075);
+      }
+
+      .field::placeholder {
+        color: rgba(161, 161, 170, 0.8);
+      }
+
+      select.field option {
+        background: #111114;
+        color: white;
+      }
+
+      .active-nav {
+        border-color: rgba(45, 212, 191, 0.45);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(45, 212, 191, 0.1));
+        color: white;
+      }
+
+      .drawer-open {
+        transform: translateX(0);
+      }
+    </style>
+  </head>
+  <body class="font-sans text-zinc-100 antialiased">
+    <div id="toast" class="fixed right-4 top-4 z-[80] hidden max-w-sm rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-sm shadow-glow"></div>
+
+    <section id="loginView" class="grid min-h-screen place-items-center px-5 py-10">
+      <div class="w-full max-w-md rounded-xl border border-white/10 bg-white/[0.055] p-6 shadow-glow backdrop-blur">
+        <div class="mb-8 flex items-center gap-3">
+          <div class="grid h-11 w-11 place-items-center rounded-lg border border-teal/40 bg-teal/10 font-code text-sm font-bold text-teal">OB</div>
+          <div>
+            <h1 class="text-xl font-black tracking-tight">OpenBe Console</h1>
+            <p class="text-sm text-zinc-400">运营管理后台</p>
+          </div>
+        </div>
+
+        <form id="loginForm" class="grid gap-4">
+          <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+            管理员邮箱
+            <input id="loginEmail" class="field" type="email" value="admin@openbe.ai" autocomplete="username" required />
+          </label>
+          <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+            密码
+            <input id="loginPassword" class="field" type="password" autocomplete="current-password" required />
+          </label>
+          <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+            API 地址
+            <input id="apiBase" class="field font-code text-sm" type="url" value="https://api.openbe.ai" required />
+          </label>
+          <button
+            class="mt-2 inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-teal px-4 font-bold text-zinc-950 transition hover:bg-cyan-300"
+            type="submit"
+          >
+            <i data-lucide="log-in" class="h-4 w-4"></i>
+            登录
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section id="appView" class="hidden min-h-screen">
+      <aside class="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-white/10 bg-zinc-950/78 p-4 backdrop-blur-xl lg:block">
+        <div class="mb-7 flex items-center gap-3 px-2">
+          <div class="grid h-11 w-11 place-items-center rounded-lg border border-electric/45 bg-electric/10 font-code text-sm font-bold text-teal">OB</div>
+          <div>
+            <p class="text-lg font-black">OpenBe</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Console</p>
+          </div>
+        </div>
+
+        <nav id="desktopNav" class="grid gap-2"></nav>
+
+        <div class="absolute bottom-4 left-4 right-4 rounded-lg border border-white/10 bg-white/[0.045] p-4">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">API</p>
+          <p id="currentApi" class="break-all font-code text-xs text-zinc-300"></p>
+        </div>
+      </aside>
+
+      <main class="lg:pl-72">
+        <header class="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/72 backdrop-blur-xl">
+          <div class="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <div>
+              <p id="sectionEyebrow" class="font-code text-xs font-semibold uppercase tracking-[0.18em] text-teal">Overview</p>
+              <h2 id="sectionTitle" class="text-xl font-black sm:text-2xl">概览</h2>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="refreshBtn" class="inline-flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-bold text-zinc-200 transition hover:border-teal/50 hover:text-white">
+                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                刷新
+              </button>
+              <button id="logoutBtn" class="inline-flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-bold text-zinc-200 transition hover:border-red-400/50 hover:text-white">
+                <i data-lucide="log-out" class="h-4 w-4"></i>
+                退出
+              </button>
+            </div>
+          </div>
+          <div id="mobileNav" class="flex gap-2 overflow-x-auto px-4 pb-3 lg:hidden"></div>
+        </header>
+
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+          <section id="overviewPanel" class="grid gap-6"></section>
+          <section id="usersPanel" class="hidden grid gap-5"></section>
+          <section id="subscriptionsPanel" class="hidden grid gap-5"></section>
+          <section id="modelsPanel" class="hidden grid gap-5"></section>
+          <section id="plansPanel" class="hidden grid gap-5"></section>
+        </div>
+      </main>
+    </section>
+
+    <div id="drawerBackdrop" class="fixed inset-0 z-50 hidden bg-black/55 backdrop-blur-sm"></div>
+    <aside id="drawer" class="fixed inset-y-0 right-0 z-[60] w-full max-w-xl translate-x-full border-l border-white/10 bg-zinc-950 shadow-2xl transition-transform duration-200">
+      <form id="drawerForm" class="flex h-full flex-col">
+        <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+          <div>
+            <p id="drawerKicker" class="font-code text-xs font-semibold uppercase tracking-[0.16em] text-teal"></p>
+            <h3 id="drawerTitle" class="text-lg font-black"></h3>
+          </div>
+          <button type="button" id="drawerClose" class="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/5 transition hover:border-teal/50" aria-label="关闭">
+            <i data-lucide="x" class="h-4 w-4"></i>
+          </button>
+        </div>
+        <div id="drawerFields" class="thin-scroll grid flex-1 content-start gap-4 overflow-y-auto p-5"></div>
+        <div class="flex items-center justify-between gap-3 border-t border-white/10 p-5">
+          <button id="drawerDelete" type="button" class="hidden h-10 items-center gap-2 rounded-lg border border-red-400/30 bg-red-500/10 px-4 text-sm font-bold text-red-200 transition hover:bg-red-500/18">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+            删除
+          </button>
+          <div class="ml-auto flex gap-2">
+            <button type="button" id="drawerCancel" class="h-10 rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-bold text-zinc-200 transition hover:border-white/20">取消</button>
+            <button class="h-10 rounded-lg bg-teal px-4 text-sm font-black text-zinc-950 transition hover:bg-cyan-300" type="submit">保存</button>
+          </div>
+        </div>
+      </form>
+    </aside>
+
+    <script>
+      const state = {
+        apiBase: localStorage.getItem("openbe.apiBase") || "https://api.openbe.ai",
+        token: localStorage.getItem("openbe.adminToken") || "",
+        adminEmail: localStorage.getItem("openbe.adminEmail") || "",
+        active: "overview",
+        data: {
+          users: [],
+          models: [],
+          subscriptions: [],
+          plans: [],
+        },
+        drawer: null,
+      };
+
+      const sections = [
+        { id: "overview", label: "概览", icon: "layout-dashboard", kicker: "Overview" },
+        { id: "users", label: "用户", icon: "users", kicker: "Users" },
+        { id: "subscriptions", label: "订阅", icon: "badge-check", kicker: "Subscriptions" },
+        { id: "models", label: "AI 模型", icon: "cpu", kicker: "Models" },
+        { id: "plans", label: "套餐", icon: "credit-card", kicker: "Plans" },
+      ];
+
+      const fields = {
+        users: [
+          { name: "email", label: "邮箱", type: "email", required: true },
+          { name: "name", label: "名称" },
+          { name: "verified", label: "已验证", type: "checkbox" },
+          { name: "password", label: "新密码", type: "password", createOnly: true },
+        ],
+        models: [
+          { name: "name", label: "显示名称", required: true },
+          { name: "modelId", label: "模型 ID", required: true, code: true },
+          { name: "provider", label: "供应商", required: true },
+          { name: "baseUrl", label: "Base URL", type: "url", required: true, code: true },
+          { name: "apiKey", label: "API Key", type: "password", required: true, code: true },
+          { name: "capabilities", label: "能力标签", placeholder: "chat,code,summary,intent" },
+          { name: "costPer1kInput", label: "输入成本 / 1K", type: "number" },
+          { name: "costPer1kOutput", label: "输出成本 / 1K", type: "number" },
+          { name: "sortOrder", label: "排序", type: "number" },
+          { name: "isActive", label: "启用", type: "checkbox" },
+        ],
+        subscriptions: [
+          { name: "userId", label: "用户 ID", required: true, code: true },
+          { name: "plan", label: "套餐 ID", required: true },
+          { name: "status", label: "状态", type: "select", options: ["active", "trialing", "paused", "expired", "canceled"] },
+          { name: "monthlyTokenQuota", label: "月 Token 额度", type: "number" },
+          { name: "usedTokens", label: "已用 Token", type: "number" },
+          { name: "startDate", label: "开始时间", type: "datetime" },
+          { name: "endDate", label: "结束时间", type: "datetime" },
+          { name: "resetDate", label: "重置时间", type: "datetime" },
+        ],
+        plans: [
+          { name: "name", label: "套餐名称", required: true },
+          { name: "planId", label: "套餐 ID", required: true, code: true },
+          { name: "group", label: "分组" },
+          { name: "price", label: "价格", type: "number" },
+          { name: "period", label: "周期" },
+          { name: "days", label: "天数", type: "number" },
+          { name: "monthlyTokenQuota", label: "月 Token 额度", type: "number" },
+          { name: "features", label: "功能说明", type: "textarea" },
+          { name: "sortOrder", label: "排序", type: "number" },
+          { name: "isActive", label: "启用", type: "checkbox" },
+        ],
+      };
+
+      const collectionMap = {
+        users: "users",
+        models: "ai_models",
+        subscriptions: "subscriptions",
+        plans: "pricing_plans",
+      };
+
+      const $ = (selector) => document.querySelector(selector);
+      const escapeHtml = (value = "") =>
+        String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+
+      function toast(message, tone = "info") {
+        const el = $("#toast");
+        el.textContent = message;
+        el.className =
+          "fixed right-4 top-4 z-[80] max-w-sm rounded-lg border px-4 py-3 text-sm shadow-glow " +
+          (tone === "error"
+            ? "border-red-400/30 bg-red-950 text-red-100"
+            : tone === "success"
+              ? "border-teal/30 bg-teal/10 text-teal"
+              : "border-white/10 bg-zinc-950 text-zinc-100");
+        setTimeout(() => el.classList.add("hidden"), 2800);
+      }
+
+      function endpoint(path) {
+        return `${state.apiBase.replace(/\/$/, "")}${path}`;
+      }
+
+      async function api(path, options = {}) {
+        const headers = {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        };
+        if (state.token) headers.Authorization = `Bearer ${state.token}`;
+        const response = await fetch(endpoint(path), { ...options, headers });
+        const text = await response.text();
+        let data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch {
+          data = { message: text };
+        }
+        if (!response.ok) {
+          throw new Error(data.message || data.error || `HTTP ${response.status}`);
+        }
+        return data;
+      }
+
+      async function list(collection, params = "") {
+        return api(`/api/collections/${collection}/records?${params}`);
+      }
+
+      function renderNav() {
+        const navHtml = sections
+          .map(
+            (item) => `
+              <button data-section="${item.id}" class="nav-btn flex h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-left text-sm font-bold text-zinc-400 transition hover:border-white/10 hover:bg-white/5 hover:text-white">
+                <i data-lucide="${item.icon}" class="h-4 w-4"></i>
+                <span>${item.label}</span>
+              </button>
+            `,
+          )
+          .join("");
+        $("#desktopNav").innerHTML = navHtml;
+        $("#mobileNav").innerHTML = sections
+          .map(
+            (item) => `
+              <button data-section="${item.id}" class="nav-btn flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-zinc-300">
+                <i data-lucide="${item.icon}" class="h-4 w-4"></i>
+                <span>${item.label}</span>
+              </button>
+            `,
+          )
+          .join("");
+
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+          btn.addEventListener("click", () => switchSection(btn.dataset.section));
+        });
+      }
+
+      function switchSection(id) {
+        state.active = id;
+        sections.forEach((item) => {
+          const panel = $(`#${item.id}Panel`);
+          if (panel) panel.classList.toggle("hidden", item.id !== id);
+        });
+        const meta = sections.find((item) => item.id === id);
+        $("#sectionTitle").textContent = meta.label;
+        $("#sectionEyebrow").textContent = meta.kicker;
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+          btn.classList.toggle("active-nav", btn.dataset.section === id);
+        });
+        lucide.createIcons();
+      }
+
+      function metric(label, value, icon, tone = "teal") {
+        const color = tone === "blue" ? "text-electric border-electric/25 bg-electric/10" : "text-teal border-teal/25 bg-teal/10";
+        return `
+          <div class="rounded-lg border border-white/10 bg-white/[0.045] p-5">
+            <div class="mb-5 flex items-center justify-between">
+              <span class="text-sm font-semibold text-zinc-400">${label}</span>
+              <span class="grid h-9 w-9 place-items-center rounded-lg border ${color}">
+                <i data-lucide="${icon}" class="h-4 w-4"></i>
+              </span>
+            </div>
+            <p class="text-3xl font-black">${value}</p>
+          </div>
+        `;
+      }
+
+      function tag(text, tone = "zinc") {
+        const colors = {
+          teal: "border-teal/25 bg-teal/10 text-teal",
+          blue: "border-electric/25 bg-electric/10 text-blue-200",
+          red: "border-red-400/25 bg-red-500/10 text-red-200",
+          zinc: "border-white/10 bg-white/5 text-zinc-300",
+        };
+        return `<span class="inline-flex items-center rounded-md border px-2 py-1 text-xs font-bold ${colors[tone]}">${escapeHtml(text)}</span>`;
+      }
+
+      function panelShell(title, actions, content) {
+        return `
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h3 class="text-lg font-black">${title}</h3>
+            <div class="flex flex-wrap gap-2">${actions || ""}</div>
+          </div>
+          ${content}
+        `;
+      }
+
+      function table(headers, rows, emptyText) {
+        return `
+          <div class="thin-scroll overflow-x-auto rounded-lg border border-white/10 bg-white/[0.045]">
+            <table class="min-w-full text-left text-sm">
+              <thead class="border-b border-white/10 bg-white/[0.035] text-xs uppercase tracking-[0.12em] text-zinc-500">
+                <tr>${headers.map((h) => `<th class="whitespace-nowrap px-4 py-3 font-bold">${h}</th>`).join("")}</tr>
+              </thead>
+              <tbody class="divide-y divide-white/10">
+                ${
+                  rows.length
+                    ? rows.join("")
+                    : `<tr><td colspan="${headers.length}" class="px-4 py-10 text-center text-zinc-500">${emptyText}</td></tr>`
+                }
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      function renderOverview() {
+        const activeModels = state.data.models.filter((item) => item.isActive).length;
+        const activeSubs = state.data.subscriptions.filter((item) => item.status === "active").length;
+        const activePlans = state.data.plans.filter((item) => item.isActive).length;
+        const latestUsers = state.data.users.slice(0, 5);
+        const defaultModel = state.data.models.find((item) => item.modelId === "deepseek-v4-flash") || state.data.models.find((item) => item.isActive);
+
+        $("#overviewPanel").innerHTML = `
+          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            ${metric("用户", state.data.users.length, "users")}
+            ${metric("有效订阅", activeSubs, "badge-check", "blue")}
+            ${metric("启用模型", activeModels, "cpu")}
+            ${metric("启用套餐", activePlans, "credit-card", "blue")}
+          </div>
+          <div class="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
+            <div class="rounded-lg border border-white/10 bg-white/[0.045] p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="font-black">最近用户</h3>
+                <button data-section="users" class="nav-btn rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-zinc-300 transition hover:text-white">查看全部</button>
+              </div>
+              ${table(
+                ["邮箱", "名称", "验证", "创建时间"],
+                latestUsers.map(
+                  (u) => `
+                    <tr>
+                      <td class="px-4 py-3 font-semibold">${escapeHtml(u.email || "-")}</td>
+                      <td class="px-4 py-3 text-zinc-300">${escapeHtml(u.name || "-")}</td>
+                      <td class="px-4 py-3">${tag(u.verified ? "verified" : "pending", u.verified ? "teal" : "zinc")}</td>
+                      <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatDate(u.created))}</td>
+                    </tr>
+                  `,
+                ),
+                "暂无用户",
+              )}
+            </div>
+            <div class="rounded-lg border border-white/10 bg-white/[0.045] p-5">
+              <h3 class="mb-4 font-black">当前默认路由</h3>
+              <div class="grid gap-3">
+                ${tag(`chat: ${defaultModel?.modelId || "-"}`, "teal")}
+                ${tag("code: deepseek-v4-pro", "blue")}
+                ${tag("vision: qwen3.6-plus", "zinc")}
+                ${tag("summary: deepseek-v4-flash", "teal")}
+              </div>
+            </div>
+          </div>
+        `;
+        bindDynamicNav();
+      }
+
+      function renderUsers() {
+        const rows = state.data.users.map(
+          (u) => `
+            <tr>
+              <td class="px-4 py-3">
+                <p class="font-bold">${escapeHtml(u.email || "-")}</p>
+                <p class="font-code text-xs text-zinc-500">${escapeHtml(u.id)}</p>
+              </td>
+              <td class="px-4 py-3 text-zinc-300">${escapeHtml(u.name || "-")}</td>
+              <td class="px-4 py-3">${tag(u.verified ? "verified" : "pending", u.verified ? "teal" : "zinc")}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatDate(u.created))}</td>
+              <td class="px-4 py-3 text-right">
+                <button data-edit="users" data-id="${u.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
+              </td>
+            </tr>
+          `,
+        );
+        $("#usersPanel").innerHTML = panelShell(
+          "用户管理",
+          `<button data-new="users" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增用户</button>`,
+          table(["用户", "名称", "状态", "注册时间", ""], rows, "暂无用户"),
+        );
+      }
+
+      function renderModels() {
+        const rows = state.data.models
+          .slice()
+          .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+          .map(
+            (m) => `
+              <tr>
+                <td class="px-4 py-3">
+                  <p class="font-bold">${escapeHtml(m.name || "-")}</p>
+                  <p class="font-code text-xs text-zinc-500">${escapeHtml(m.modelId)}</p>
+                </td>
+                <td class="px-4 py-3">${tag(m.provider || "-", "blue")}</td>
+                <td class="max-w-[18rem] truncate px-4 py-3 font-code text-xs text-zinc-400">${escapeHtml(m.baseUrl || "-")}</td>
+                <td class="px-4 py-3">
+                  <div class="flex max-w-sm flex-wrap gap-1.5">${String(m.capabilities || "").split(",").filter(Boolean).map((c) => tag(c.trim(), "zinc")).join("")}</div>
+                </td>
+                <td class="px-4 py-3">${tag(m.isActive ? "active" : "off", m.isActive ? "teal" : "red")}</td>
+                <td class="px-4 py-3 font-code text-xs text-zinc-500">${Number(m.sortOrder || 0)}</td>
+                <td class="px-4 py-3 text-right">
+                  <button data-test-model="${escapeHtml(m.modelId)}" class="mr-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-electric/50">测试</button>
+                  <button data-edit="models" data-id="${m.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
+                </td>
+              </tr>
+            `,
+          );
+        $("#modelsPanel").innerHTML = panelShell(
+          "AI 模型",
+          `<button data-new="models" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增模型</button>`,
+          table(["模型", "供应商", "Base URL", "能力", "状态", "排序", ""], rows, "暂无模型"),
+        );
+      }
+
+      function renderSubscriptions() {
+        const userById = Object.fromEntries(state.data.users.map((u) => [u.id, u]));
+        const rows = state.data.subscriptions.map((s) => {
+          const user = userById[s.userId];
+          return `
+            <tr>
+              <td class="px-4 py-3">
+                <p class="font-bold">${escapeHtml(user?.email || s.userId || "-")}</p>
+                <p class="font-code text-xs text-zinc-500">${escapeHtml(s.userId || "-")}</p>
+              </td>
+              <td class="px-4 py-3">${tag(s.plan || "-", "blue")}</td>
+              <td class="px-4 py-3">${tag(s.status || "-", s.status === "active" ? "teal" : "zinc")}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-400">${Number(s.usedTokens || 0).toLocaleString()} / ${Number(s.monthlyTokenQuota || 0).toLocaleString()}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatUnix(s.endDate))}</td>
+              <td class="px-4 py-3 text-right">
+                <button data-edit="subscriptions" data-id="${s.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
+              </td>
+            </tr>
+          `;
+        });
+        $("#subscriptionsPanel").innerHTML = panelShell(
+          "订阅管理",
+          `<button data-new="subscriptions" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增订阅</button>`,
+          table(["用户", "套餐", "状态", "Token", "到期", ""], rows, "暂无订阅"),
+        );
+      }
+
+      function renderPlans() {
+        const rows = state.data.plans
+          .slice()
+          .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+          .map(
+            (p) => `
+              <tr>
+                <td class="px-4 py-3">
+                  <p class="font-bold">${escapeHtml(p.name || "-")}</p>
+                  <p class="font-code text-xs text-zinc-500">${escapeHtml(p.planId || "-")}</p>
+                </td>
+                <td class="px-4 py-3">${tag(p.group || "-", "zinc")}</td>
+                <td class="px-4 py-3 font-code text-xs text-zinc-300">¥${Number(p.price || 0)}</td>
+                <td class="px-4 py-3 text-zinc-300">${escapeHtml(p.period || "-")}</td>
+                <td class="px-4 py-3 font-code text-xs text-zinc-400">${Number(p.monthlyTokenQuota || 0).toLocaleString()}</td>
+                <td class="px-4 py-3">${tag(p.isActive ? "active" : "off", p.isActive ? "teal" : "red")}</td>
+                <td class="px-4 py-3 text-right">
+                  <button data-edit="plans" data-id="${p.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
+                </td>
+              </tr>
+            `,
+          );
+        $("#plansPanel").innerHTML = panelShell(
+          "套餐配置",
+          `<button data-new="plans" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增套餐</button>`,
+          table(["套餐", "分组", "价格", "周期", "月额度", "状态", ""], rows, "暂无套餐"),
+        );
+      }
+
+      function renderAll() {
+        renderNav();
+        renderOverview();
+        renderUsers();
+        renderSubscriptions();
+        renderModels();
+        renderPlans();
+        switchSection(state.active);
+        bindActions();
+        lucide.createIcons();
+      }
+
+      function bindDynamicNav() {
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+          btn.addEventListener("click", () => switchSection(btn.dataset.section));
+        });
+      }
+
+      function bindActions() {
+        document.querySelectorAll("[data-edit]").forEach((btn) => {
+          btn.addEventListener("click", () => openDrawer(btn.dataset.edit, btn.dataset.id));
+        });
+        document.querySelectorAll("[data-new]").forEach((btn) => {
+          btn.addEventListener("click", () => openDrawer(btn.dataset.new));
+        });
+        document.querySelectorAll("[data-test-model]").forEach((btn) => {
+          btn.addEventListener("click", () => testModel(btn.dataset.testModel));
+        });
+      }
+
+      function valueForInput(value, field) {
+        if (field.type === "datetime") {
+          if (!value) return "";
+          const date = new Date(Number(value) * 1000);
+          return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 16);
+        }
+        return value ?? "";
+      }
+
+      function valueFromInput(input, field) {
+        if (field.type === "checkbox") return input.checked;
+        if (field.type === "number") return Number(input.value || 0);
+        if (field.type === "datetime") return input.value ? Math.floor(new Date(input.value).getTime() / 1000) : 0;
+        return input.value;
+      }
+
+      function openDrawer(kind, id = "") {
+        const item = id ? state.data[kind].find((record) => record.id === id) : {};
+        state.drawer = { kind, id, item: item || {} };
+        const labels = { users: "用户", models: "AI 模型", subscriptions: "订阅", plans: "套餐" };
+        $("#drawerKicker").textContent = id ? "Edit" : "Create";
+        $("#drawerTitle").textContent = `${id ? "编辑" : "新增"}${labels[kind]}`;
+        $("#drawerDelete").classList.toggle("hidden", !id);
+        $("#drawerDelete").classList.toggle("inline-flex", Boolean(id));
+        $("#drawerFields").innerHTML = fields[kind]
+          .filter((field) => !(field.createOnly && id))
+          .map((field) => renderField(field, item || {}, Boolean(id)))
+          .join("");
+        $("#drawerBackdrop").classList.remove("hidden");
+        $("#drawer").classList.add("drawer-open");
+        lucide.createIcons();
+      }
+
+      function renderField(field, item, editing) {
+        const value = valueForInput(item[field.name], field);
+        const required = field.required ? "required" : "";
+        const inputClass = `field ${field.code ? "font-code text-sm" : ""}`;
+
+        if (field.type === "checkbox") {
+          return `
+            <label class="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-semibold text-zinc-300">
+              <span>${field.label}</span>
+              <input name="${field.name}" type="checkbox" class="h-5 w-5 accent-teal" ${item[field.name] ? "checked" : ""} />
+            </label>
+          `;
+        }
+
+        if (field.type === "textarea") {
+          return `
+            <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+              ${field.label}
+              <textarea name="${field.name}" class="${inputClass} min-h-28" ${required} placeholder="${escapeHtml(field.placeholder || "")}">${escapeHtml(value)}</textarea>
+            </label>
+          `;
+        }
+
+        if (field.type === "select") {
+          return `
+            <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+              ${field.label}
+              <select name="${field.name}" class="${inputClass}" ${required}>
+                ${(field.options || []).map((opt) => `<option value="${opt}" ${value === opt ? "selected" : ""}>${opt}</option>`).join("")}
+              </select>
+            </label>
+          `;
+        }
+
+        return `
+          <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+            ${field.label}
+            <input name="${field.name}" class="${inputClass}" type="${field.type || "text"}" value="${escapeHtml(value)}" ${required} placeholder="${escapeHtml(field.placeholder || "")}" ${field.name === "apiKey" && editing ? 'autocomplete="new-password"' : ""} />
+          </label>
+        `;
+      }
+
+      function closeDrawer() {
+        state.drawer = null;
+        $("#drawerBackdrop").classList.add("hidden");
+        $("#drawer").classList.remove("drawer-open");
+        $("#drawerForm").reset();
+      }
+
+      async function saveDrawer(event) {
+        event.preventDefault();
+        const { kind, id } = state.drawer;
+        const form = new FormData(event.currentTarget);
+        const payload = {};
+
+        fields[kind]
+          .filter((field) => !(field.createOnly && id))
+          .forEach((field) => {
+            const input = event.currentTarget.elements[field.name];
+            if (!input) return;
+            const value = valueFromInput(input, field);
+            if (field.name === "password" && !value) return;
+            payload[field.name] = value;
+          });
+
+        if (kind === "users" && payload.password) {
+          payload.passwordConfirm = payload.password;
+        }
+
+        try {
+          const collection = collectionMap[kind];
+          if (id) {
+            await api(`/api/collections/${collection}/records/${id}`, {
+              method: "PATCH",
+              body: JSON.stringify(payload),
+            });
+          } else {
+            await api(`/api/collections/${collection}/records`, {
+              method: "POST",
+              body: JSON.stringify(payload),
+            });
+          }
+          toast("保存成功", "success");
+          closeDrawer();
+          await loadData();
+        } catch (error) {
+          toast(error.message, "error");
+        }
+      }
+
+      async function deleteCurrent() {
+        const { kind, id } = state.drawer || {};
+        if (!id) return;
+        if (!confirm("确认删除这条记录？")) return;
+        try {
+          await api(`/api/collections/${collectionMap[kind]}/records/${id}`, { method: "DELETE" });
+          toast("已删除", "success");
+          closeDrawer();
+          await loadData();
+        } catch (error) {
+          toast(error.message, "error");
+        }
+      }
+
+      async function testModel(model) {
+        try {
+          toast(`正在测试 ${model}...`);
+          const result = await api("/v1/chat/completions", {
+            method: "POST",
+            headers: { Authorization: "Guest admin-console" },
+            body: JSON.stringify({
+              model,
+              messages: [{ role: "user", content: "Reply with OK only." }],
+              max_tokens: 16,
+              stream: false,
+            }),
+          });
+          const tokens = result.usage?.total_tokens ? `，${result.usage.total_tokens} tokens` : "";
+          toast(`模型可用${tokens}`, "success");
+        } catch (error) {
+          toast(error.message, "error");
+        }
+      }
+
+      async function loadData() {
+        const [users, models, subscriptions, plans] = await Promise.all([
+          list("users", "page=1&perPage=100&sort=-created"),
+          list("ai_models", "page=1&perPage=100&sort=sortOrder,modelId"),
+          list("subscriptions", "page=1&perPage=100&sort=-endDate"),
+          list("pricing_plans", "page=1&perPage=100&sort=sortOrder,planId"),
+        ]);
+        state.data.users = users.items || [];
+        state.data.models = models.items || [];
+        state.data.subscriptions = subscriptions.items || [];
+        state.data.plans = plans.items || [];
+        renderAll();
+      }
+
+      async function login(event) {
+        event.preventDefault();
+        state.apiBase = $("#apiBase").value.trim().replace(/\/$/, "");
+        try {
+          const data = await api("/api/collections/_superusers/auth-with-password", {
+            method: "POST",
+            body: JSON.stringify({
+              identity: $("#loginEmail").value.trim(),
+              password: $("#loginPassword").value,
+            }),
+          });
+          state.token = data.token;
+          state.adminEmail = data.record?.email || $("#loginEmail").value.trim();
+          localStorage.setItem("openbe.apiBase", state.apiBase);
+          localStorage.setItem("openbe.adminToken", state.token);
+          localStorage.setItem("openbe.adminEmail", state.adminEmail);
+          showApp();
+          await loadData();
+          toast("登录成功", "success");
+        } catch (error) {
+          toast(error.message, "error");
+        }
+      }
+
+      function logout() {
+        state.token = "";
+        localStorage.removeItem("openbe.adminToken");
+        localStorage.removeItem("openbe.adminEmail");
+        $("#loginView").classList.remove("hidden");
+        $("#appView").classList.add("hidden");
+      }
+
+      function showApp() {
+        $("#currentApi").textContent = state.apiBase;
+        $("#loginView").classList.add("hidden");
+        $("#appView").classList.remove("hidden");
+      }
+
+      function formatDate(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "-" : date.toLocaleString("zh-CN", { hour12: false });
+      }
+
+      function formatUnix(value) {
+        if (!value) return "-";
+        const date = new Date(Number(value) * 1000);
+        return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("zh-CN");
+      }
+
+      $("#loginForm").addEventListener("submit", login);
+      $("#logoutBtn").addEventListener("click", logout);
+      $("#refreshBtn").addEventListener("click", () => loadData().then(() => toast("已刷新", "success")).catch((error) => toast(error.message, "error")));
+      $("#drawerForm").addEventListener("submit", saveDrawer);
+      $("#drawerClose").addEventListener("click", closeDrawer);
+      $("#drawerCancel").addEventListener("click", closeDrawer);
+      $("#drawerBackdrop").addEventListener("click", closeDrawer);
+      $("#drawerDelete").addEventListener("click", deleteCurrent);
+
+      renderNav();
+      lucide.createIcons();
+
+      if (state.token) {
+        $("#apiBase").value = state.apiBase;
+        showApp();
+        loadData().catch((error) => {
+          toast(error.message, "error");
+          logout();
+        });
+      } else {
+        $("#apiBase").value = state.apiBase;
+      }
+    </script>
+  </body>
+</html>
