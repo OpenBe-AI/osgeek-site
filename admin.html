@@ -210,11 +210,14 @@
         Clock3,
         Cpu,
         CreditCard,
+        Copy,
+        KeyRound,
         LayoutDashboard,
         LogIn,
         LogOut,
         Plus,
         RefreshCw,
+        Smartphone,
         Trash2,
         Users,
         X,
@@ -230,11 +233,14 @@
               Clock3,
               Cpu,
               CreditCard,
+              Copy,
+              KeyRound,
               LayoutDashboard,
               LogIn,
               LogOut,
               Plus,
               RefreshCw,
+              Smartphone,
               Trash2,
               Users,
               X,
@@ -249,10 +255,12 @@
         active: "overview",
         data: {
           users: [],
+          phoneUsers: [],
           models: [],
           subscriptions: [],
           plans: [],
         },
+        phoneProvision: null,
         drawer: null,
       };
 
@@ -449,6 +457,85 @@
         `;
       }
 
+      function phoneForUser(user) {
+        const account = state.data.phoneUsers.find((item) => item.userId === user.id || item.email === user.email);
+        return account?.phone || "";
+      }
+
+      function formatPhone(phone = "") {
+        const digits = String(phone).replace(/\D/g, "");
+        const normalized = digits.startsWith("86") && digits.length === 13 ? digits.slice(2) : digits;
+        return normalized.length === 11 ? `${normalized.slice(0, 3)} ${normalized.slice(3, 7)} ${normalized.slice(7)}` : phone || "-";
+      }
+
+      function renderPhoneProvisioner() {
+        const result = state.phoneProvision;
+        const phoneRows = state.data.phoneUsers.map(
+          (item) => `
+            <tr>
+              <td class="px-4 py-3">
+                <p class="font-bold">${escapeHtml(formatPhone(item.phone))}</p>
+                <p class="font-code text-xs text-zinc-500">${escapeHtml(item.email || "-")}</p>
+              </td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(item.userId || "-")}</td>
+              <td class="px-4 py-3">${item.manualCodeExpiresAt ? tag(`验证码有效至 ${formatUnixTime(item.manualCodeExpiresAt)}`, "teal") : tag("无临时验证码", "zinc")}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatUnixTime(item.updatedAt))}</td>
+            </tr>
+          `,
+        );
+
+        return `
+          <div class="grid gap-4 rounded-lg border border-white/10 bg-white/[0.045] p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="font-black">手动开通手机号登录</h3>
+                <p class="mt-1 text-sm text-zinc-400">阿里云短信没完全开通前，先由后台生成临时验证码给内测用户登录。</p>
+              </div>
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-teal/25 bg-teal/10 text-teal">
+                <i data-lucide="smartphone" class="h-4 w-4"></i>
+              </span>
+            </div>
+
+            <form id="phoneProvisionForm" class="grid gap-3 md:grid-cols-[1fr_1fr_8rem_auto] md:items-end">
+              <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+                手机号
+                <input name="phone" class="field font-code text-sm" inputmode="tel" placeholder="13800138000" required />
+              </label>
+              <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+                昵称
+                <input name="name" class="field" placeholder="可选" />
+              </label>
+              <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+                有效天数
+                <input name="ttlDays" class="field font-code text-sm" type="number" min="1" max="30" value="7" />
+              </label>
+              <button class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-teal px-4 text-sm font-black text-zinc-950 transition hover:bg-cyan-300" type="submit">
+                <i data-lucide="key-round" class="h-4 w-4"></i>
+                生成验证码
+              </button>
+            </form>
+
+            ${
+              result
+                ? `<div class="rounded-lg border border-teal/25 bg-teal/10 p-4">
+                    <p class="text-sm font-semibold text-teal">已开通 ${escapeHtml(formatPhone(result.phone))}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-3">
+                      <code class="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 font-code text-2xl font-black text-white">${escapeHtml(result.loginCode)}</code>
+                      <button data-copy-code="${escapeHtml(result.loginCode)}" class="inline-flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-bold transition hover:border-teal/50">
+                        <i data-lucide="copy" class="h-4 w-4"></i>
+                        复制
+                      </button>
+                      <span class="text-sm text-zinc-400">有效至 ${escapeHtml(formatUnixTime(result.expiresAt))}</span>
+                    </div>
+                  </div>`
+                : ""
+            }
+
+            ${table(["手机号", "PocketBase 用户", "临时验证码", "更新时间"], phoneRows, "暂无手机号账号")}
+          </div>
+        `;
+      }
+
       function panelShell(title, actions, content) {
         return `
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -535,6 +622,7 @@
                 <p class="font-bold">${escapeHtml(u.email || "-")}</p>
                 <p class="font-code text-xs text-zinc-500">${escapeHtml(u.id)}</p>
               </td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-300">${escapeHtml(formatPhone(phoneForUser(u)))}</td>
               <td class="px-4 py-3 text-zinc-300">${escapeHtml(u.name || "-")}</td>
               <td class="px-4 py-3">${userStatus(u)}</td>
               <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatDate(u.created))}</td>
@@ -547,7 +635,7 @@
         $("#usersPanel").innerHTML = panelShell(
           "用户管理",
           `<button data-new="users" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增用户</button>`,
-          table(["用户", "名称", "状态", "注册时间", ""], rows, "暂无用户"),
+          `${renderPhoneProvisioner()}${table(["用户", "手机号", "名称", "状态", "注册时间", ""], rows, "暂无用户")}`,
         );
       }
 
@@ -666,6 +754,13 @@
         });
         document.querySelectorAll("[data-test-model]").forEach((btn) => {
           btn.addEventListener("click", () => testModel(btn.dataset.testModel));
+        });
+        $("#phoneProvisionForm")?.addEventListener("submit", createPhoneUser);
+        document.querySelectorAll("[data-copy-code]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            await navigator.clipboard.writeText(btn.dataset.copyCode || "");
+            toast("验证码已复制", "success");
+          });
         });
       }
 
@@ -829,14 +924,36 @@
         }
       }
 
+      async function createPhoneUser(event) {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        try {
+          const result = await api("/v1/admin/phone-users", {
+            method: "POST",
+            body: JSON.stringify({
+              phone: form.get("phone"),
+              name: form.get("name"),
+              ttlDays: Number(form.get("ttlDays") || 7),
+            }),
+          });
+          state.phoneProvision = result;
+          toast("手机号已开通", "success");
+          await loadData();
+        } catch (error) {
+          toast(error.message, "error");
+        }
+      }
+
       async function loadData() {
-        const [users, models, subscriptions, plans] = await Promise.all([
+        const [users, phoneUsers, models, subscriptions, plans] = await Promise.all([
           list("users", "page=1&perPage=100&sort=-created"),
+          api("/v1/admin/phone-users").catch(() => ({ items: [] })),
           list("ai_models", "page=1&perPage=100&sort=sortOrder,modelId"),
           list("subscriptions", "page=1&perPage=100&sort=-endDate"),
           list("pricing_plans", "page=1&perPage=100&sort=sortOrder,planId"),
         ]);
         state.data.users = users.items || [];
+        state.data.phoneUsers = phoneUsers.items || [];
         state.data.models = models.items || [];
         state.data.subscriptions = subscriptions.items || [];
         state.data.plans = plans.items || [];
@@ -891,6 +1008,12 @@
         if (!value) return "-";
         const date = new Date(Number(value) * 1000);
         return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("zh-CN");
+      }
+
+      function formatUnixTime(value) {
+        if (!value) return "-";
+        const date = new Date(Number(value) * 1000);
+        return Number.isNaN(date.getTime()) ? "-" : date.toLocaleString("zh-CN", { hour12: false });
       }
 
       $("#loginForm").addEventListener("submit", login);
