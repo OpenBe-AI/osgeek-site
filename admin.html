@@ -259,6 +259,7 @@
           models: [],
           subscriptions: [],
           plans: [],
+          usage: { total: { requests: 0, tokens: 0 }, byUser: {} },
         },
         phoneProvision: null,
         drawer: null,
@@ -440,6 +441,48 @@
         return `<span class="inline-flex items-center rounded-md border px-2 py-1 text-xs font-bold ${colors[tone]}">${escapeHtml(text)}</span>`;
       }
 
+      function formatNumber(value) {
+        return Number(value || 0).toLocaleString();
+      }
+
+      function numericField(source, names) {
+        const match = names.find((name) => source && source[name] !== undefined);
+        return Number(match ? source[match] : 0) || 0;
+      }
+
+      function normalizeUsageItem(item = {}) {
+        return {
+          requests: numericField(item, ["requests", "request_count", "requestCount", "total_requests", "totalRequests", "count"]),
+          tokens: numericField(item, ["tokens", "total_tokens", "totalTokens", "token_count", "tokenCount"]),
+          input: numericField(item, ["input", "input_tokens", "inputTokens", "total_input", "totalInput"]),
+          output: numericField(item, ["output", "output_tokens", "outputTokens", "total_output", "totalOutput"]),
+          lastUsed: item.last_used || item.lastUsed || item.last_used_at || item.lastUsedAt || "",
+        };
+      }
+
+      function normalizeUsage(raw = {}) {
+        const total = normalizeUsageItem(raw.total || raw.summary || raw);
+        const byUser = {};
+        const source = raw.by_user || raw.byUser || raw.users || [];
+
+        if (Array.isArray(source)) {
+          source.forEach((item) => {
+            const userId = item.user_id || item.userId || item.id;
+            if (userId) byUser[userId] = normalizeUsageItem(item);
+          });
+        } else {
+          Object.entries(source).forEach(([userId, item]) => {
+            byUser[userId] = normalizeUsageItem(item);
+          });
+        }
+
+        return { total, byUser };
+      }
+
+      function usageForUser(userId) {
+        return state.data.usage.byUser[userId] || { requests: 0, tokens: 0, input: 0, output: 0, lastUsed: "" };
+      }
+
       function userStatus(user) {
         if (user.verified) {
           return `
@@ -570,14 +613,17 @@
         const activeSubs = state.data.subscriptions.filter((item) => item.status === "active").length;
         const activePlans = state.data.plans.filter((item) => item.isActive).length;
         const latestUsers = state.data.users.slice(0, 5);
+        const usage = state.data.usage.total;
         const defaultModel = state.data.models.find((item) => item.modelId === "deepseek-v4-flash") || state.data.models.find((item) => item.isActive);
 
         $("#overviewPanel").innerHTML = `
-          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             ${metric("用户", state.data.users.length, "users")}
             ${metric("有效订阅", activeSubs, "badge-check", "blue")}
             ${metric("启用模型", activeModels, "cpu")}
             ${metric("启用套餐", activePlans, "credit-card", "blue")}
+            ${metric("30 天请求", formatNumber(usage.requests), "refresh-cw")}
+            ${metric("30 天 Tokens", formatNumber(usage.tokens), "cpu", "blue")}
           </div>
           <div class="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
             <div class="rounded-lg border border-white/10 bg-white/[0.045] p-5">
@@ -616,7 +662,9 @@
 
       function renderUsers() {
         const rows = state.data.users.map(
-          (u) => `
+          (u) => {
+            const usage = usageForUser(u.id);
+            return `
             <tr>
               <td class="px-4 py-3">
                 <p class="font-bold">${escapeHtml(u.email || "-")}</p>
@@ -625,17 +673,26 @@
               <td class="px-4 py-3 font-code text-xs text-zinc-300">${escapeHtml(formatPhone(phoneForUser(u)))}</td>
               <td class="px-4 py-3 text-zinc-300">${escapeHtml(u.name || "-")}</td>
               <td class="px-4 py-3">${userStatus(u)}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-300">
+                <p>${formatNumber(usage.tokens)} tokens</p>
+                <p class="text-zinc-500">in ${formatNumber(usage.input)} / out ${formatNumber(usage.output)}</p>
+                <p class="text-zinc-500">${formatNumber(usage.requests)} requests</p>
+              </td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-500">
+                ${escapeHtml(formatDate(usage.lastUsed))}
+              </td>
               <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatDate(u.created))}</td>
               <td class="px-4 py-3 text-right">
                 <button data-edit="users" data-id="${u.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
               </td>
             </tr>
-          `,
+          `;
+          },
         );
         $("#usersPanel").innerHTML = panelShell(
           "用户管理",
           `<button data-new="users" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增用户</button>`,
-          `${renderPhoneProvisioner()}${table(["用户", "手机号", "名称", "状态", "注册时间", ""], rows, "暂无用户")}`,
+          `${renderPhoneProvisioner()}${table(["用户", "手机号", "名称", "状态", "30天用量/请求数", "最近使用", "注册时间", ""], rows, "暂无用户")}`,
         );
       }
 
@@ -945,18 +1002,20 @@
       }
 
       async function loadData() {
-        const [users, phoneUsers, models, subscriptions, plans] = await Promise.all([
+        const [users, phoneUsers, models, subscriptions, plans, usage] = await Promise.all([
           list("users", "page=1&perPage=100&sort=-created"),
           api("/v1/admin/phone-users").catch(() => ({ items: [] })),
           list("ai_models", "page=1&perPage=100&sort=sortOrder,modelId"),
           list("subscriptions", "page=1&perPage=100&sort=-endDate"),
           list("pricing_plans", "page=1&perPage=100&sort=sortOrder,planId"),
+          api("/v1/admin/usage").catch(() => ({})),
         ]);
         state.data.users = users.items || [];
         state.data.phoneUsers = phoneUsers.items || [];
         state.data.models = models.items || [];
         state.data.subscriptions = subscriptions.items || [];
         state.data.plans = plans.items || [];
+        state.data.usage = normalizeUsage(usage);
         renderAll();
       }
 
