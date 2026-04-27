@@ -344,6 +344,14 @@ function App() {
 
       <footer className="footer">
         <span>© 2026 上海开源极客有限公司</span>
+        <a
+          className="icp-link"
+          href="https://beian.miit.gov.cn"
+          target="_blank"
+          rel="noreferrer"
+        >
+          沪ICP备2024077870号-3
+        </a>
         <span>Open source engineering for practical products.</span>
       </footer>
     </main>
