@@ -269,7 +269,7 @@
           { name: "email", label: "邮箱", type: "email", required: true },
           { name: "name", label: "名称" },
           { name: "verified", label: "已验证", type: "checkbox" },
-          { name: "password", label: "新密码", type: "password", createOnly: true },
+          { name: "password", label: "初始密码", type: "password", required: true, createOnly: true, placeholder: "至少 8 位，建议包含字母和数字" },
         ],
         models: [
           { name: "name", label: "显示名称", required: true },
@@ -705,6 +705,7 @@
       function renderField(field, item, editing) {
         const value = valueForInput(item[field.name], field);
         const required = field.required ? "required" : "";
+        const requiredMark = field.required ? '<span class="text-teal">*</span>' : "";
         const inputClass = `field ${field.code ? "font-code text-sm" : ""}`;
 
         if (field.type === "checkbox") {
@@ -719,7 +720,7 @@
         if (field.type === "textarea") {
           return `
             <label class="grid gap-2 text-sm font-semibold text-zinc-300">
-              ${field.label}
+              <span>${field.label} ${requiredMark}</span>
               <textarea name="${field.name}" class="${inputClass} min-h-28" ${required} placeholder="${escapeHtml(field.placeholder || "")}">${escapeHtml(value)}</textarea>
             </label>
           `;
@@ -728,7 +729,7 @@
         if (field.type === "select") {
           return `
             <label class="grid gap-2 text-sm font-semibold text-zinc-300">
-              ${field.label}
+              <span>${field.label} ${requiredMark}</span>
               <select name="${field.name}" class="${inputClass}" ${required}>
                 ${(field.options || []).map((opt) => `<option value="${opt}" ${value === opt ? "selected" : ""}>${opt}</option>`).join("")}
               </select>
@@ -738,7 +739,7 @@
 
         return `
           <label class="grid gap-2 text-sm font-semibold text-zinc-300">
-            ${field.label}
+            <span>${field.label} ${requiredMark}</span>
             <input name="${field.name}" class="${inputClass}" type="${field.type || "text"}" value="${escapeHtml(value)}" ${required} placeholder="${escapeHtml(field.placeholder || "")}" ${field.name === "apiKey" && editing ? 'autocomplete="new-password"' : ""} />
           </label>
         `;
