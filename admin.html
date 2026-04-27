@@ -445,6 +445,13 @@
         return Number(value || 0).toLocaleString();
       }
 
+      function recordId() {
+        const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        const bytes = new Uint8Array(14);
+        crypto.getRandomValues(bytes);
+        return `r${Array.from(bytes, (byte) => chars[byte % chars.length]).join("")}`;
+      }
+
       function numericField(source, names) {
         const match = names.find((name) => source && source[name] !== undefined);
         return Number(match ? source[match] : 0) || 0;
@@ -481,6 +488,43 @@
 
       function usageForUser(userId) {
         return state.data.usage.byUser[userId] || { requests: 0, tokens: 0, input: 0, output: 0, lastUsed: "" };
+      }
+
+      function subscriptionForUser(userId) {
+        const subscriptions = state.data.subscriptions
+          .filter((item) => item.userId === userId)
+          .sort((a, b) => {
+            const aActive = a.status === "active" ? 1 : 0;
+            const bActive = b.status === "active" ? 1 : 0;
+            return bActive - aActive || Number(b.endDate || 0) - Number(a.endDate || 0);
+          });
+        return subscriptions[0] || null;
+      }
+
+      function subscriptionTokenStats(subscription = {}) {
+        const used = Number(subscription.usedTokens || 0);
+        const total = Number(subscription.monthlyTokenQuota || 0);
+        return { used, total, remaining: Math.max(total - used, 0) };
+      }
+
+      function subscriptionStatusTag(status) {
+        const tone = status === "active" ? "teal" : ["expired", "canceled"].includes(status) ? "red" : "zinc";
+        return tag(status || "无订阅", tone);
+      }
+
+      function manualTrialDefaults(userId) {
+        const now = Math.floor(Date.now() / 1000);
+        const thirtyDays = 30 * 24 * 60 * 60;
+        return {
+          userId,
+          status: "active",
+          monthlyTokenQuota: 100000,
+          usedTokens: 0,
+          startDate: now,
+          endDate: now + thirtyDays,
+          resetDate: now + thirtyDays,
+          plan: "manual_trial",
+        };
       }
 
       function userStatus(user) {
@@ -664,6 +708,8 @@
         const rows = state.data.users.map(
           (u) => {
             const usage = usageForUser(u.id);
+            const subscription = subscriptionForUser(u.id);
+            const tokenStats = subscriptionTokenStats(subscription || {});
             return `
             <tr>
               <td class="px-4 py-3">
@@ -678,12 +724,22 @@
                 <p class="text-zinc-500">in ${formatNumber(usage.input)} / out ${formatNumber(usage.output)}</p>
                 <p class="text-zinc-500">${formatNumber(usage.requests)} requests</p>
               </td>
+              <td class="px-4 py-3">
+                <div class="grid gap-1.5">
+                  <div>${subscriptionStatusTag(subscription?.status)}</div>
+                  <p class="font-code text-xs text-zinc-400">${formatNumber(tokenStats.used)} / ${formatNumber(tokenStats.total)}</p>
+                  <p class="font-code text-xs text-zinc-500">剩余 ${formatNumber(tokenStats.remaining)}</p>
+                </div>
+              </td>
               <td class="px-4 py-3 font-code text-xs text-zinc-500">
                 ${escapeHtml(formatDate(usage.lastUsed))}
               </td>
               <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatDate(u.created))}</td>
               <td class="px-4 py-3 text-right">
-                <button data-edit="users" data-id="${u.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
+                <div class="flex justify-end gap-2">
+                  <button data-open-subscription="${escapeHtml(u.id)}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-electric/50">开通</button>
+                  <button data-edit="users" data-id="${escapeHtml(u.id)}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
+                </div>
               </td>
             </tr>
           `;
@@ -692,7 +748,7 @@
         $("#usersPanel").innerHTML = panelShell(
           "用户管理",
           `<button data-new="users" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增用户</button>`,
-          `${renderPhoneProvisioner()}${table(["用户", "手机号", "名称", "状态", "30天用量/请求数", "最近使用", "注册时间", ""], rows, "暂无用户")}`,
+          `${renderPhoneProvisioner()}${table(["用户", "手机号", "名称", "状态", "30天用量/请求数", "订阅/额度", "最近使用", "注册时间", ""], rows, "暂无用户")}`,
         );
       }
 
@@ -732,6 +788,7 @@
         const userById = Object.fromEntries(state.data.users.map((u) => [u.id, u]));
         const rows = state.data.subscriptions.map((s) => {
           const user = userById[s.userId];
+          const tokenStats = subscriptionTokenStats(s);
           return `
             <tr>
               <td class="px-4 py-3">
@@ -740,7 +797,8 @@
               </td>
               <td class="px-4 py-3">${tag(s.plan || "-", "blue")}</td>
               <td class="px-4 py-3">${tag(s.status || "-", s.status === "active" ? "teal" : "zinc")}</td>
-              <td class="px-4 py-3 font-code text-xs text-zinc-400">${Number(s.usedTokens || 0).toLocaleString()} / ${Number(s.monthlyTokenQuota || 0).toLocaleString()}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-400">${formatNumber(tokenStats.used)} / ${formatNumber(tokenStats.total)}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-400">${formatNumber(tokenStats.remaining)}</td>
               <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatUnix(s.endDate))}</td>
               <td class="px-4 py-3 text-right">
                 <button data-edit="subscriptions" data-id="${s.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
@@ -751,7 +809,7 @@
         $("#subscriptionsPanel").innerHTML = panelShell(
           "订阅管理",
           `<button data-new="subscriptions" class="inline-flex h-10 items-center gap-2 rounded-lg bg-teal px-3 text-sm font-black text-zinc-950 transition hover:bg-cyan-300"><i data-lucide="plus" class="h-4 w-4"></i>新增订阅</button>`,
-          table(["用户", "套餐", "状态", "Token", "到期", ""], rows, "暂无订阅"),
+          table(["用户", "套餐", "状态", "Token", "剩余额度", "到期", ""], rows, "暂无订阅"),
         );
       }
 
@@ -809,6 +867,9 @@
         document.querySelectorAll("[data-new]").forEach((btn) => {
           btn.addEventListener("click", () => openDrawer(btn.dataset.new));
         });
+        document.querySelectorAll("[data-open-subscription]").forEach((btn) => {
+          btn.addEventListener("click", () => openDrawer("subscriptions", "", manualTrialDefaults(btn.dataset.openSubscription)));
+        });
         document.querySelectorAll("[data-test-model]").forEach((btn) => {
           btn.addEventListener("click", () => testModel(btn.dataset.testModel));
         });
@@ -837,8 +898,8 @@
         return input.value;
       }
 
-      function openDrawer(kind, id = "") {
-        const item = id ? state.data[kind].find((record) => record.id === id) : {};
+      function openDrawer(kind, id = "", defaults = {}) {
+        const item = id ? state.data[kind].find((record) => record.id === id) : defaults;
         state.drawer = { kind, id, item: item || {} };
         const labels = { users: "用户", models: "AI 模型", subscriptions: "订阅", plans: "套餐" };
         $("#drawerKicker").textContent = id ? "Edit" : "Create";
@@ -934,6 +995,7 @@
               body: JSON.stringify(payload),
             });
           } else {
+            payload.id = payload.id || recordId();
             await api(`/api/collections/${collection}/records`, {
               method: "POST",
               body: JSON.stringify(payload),
