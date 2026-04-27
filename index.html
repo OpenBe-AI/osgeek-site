@@ -1,16 +1,344 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="上海开源极客有限公司，专注开源技术、AI 工程、云原生架构与产品交付。"
+      content="Shanghai OpenSource Geek Co., Ltd. (OSGeek) helps everyone learn, use, and implement AI through open-source projects."
     />
-    <title>上海开源极客有限公司 | OSGeek</title>
+    <title>OSGeek | Shanghai OpenSource Geek Co., Ltd.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              void: "#0a0a0a",
+              electric: "#3b82f6",
+              teal: "#2dd4bf",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+              code: ["Fira Code", "monospace"],
+            },
+            boxShadow: {
+              glow: "0 0 44px rgba(59, 130, 246, 0.28)",
+              tealGlow: "0 0 42px rgba(45, 212, 191, 0.22)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 18% 12%, rgba(59, 130, 246, 0.22), transparent 32rem),
+          radial-gradient(circle at 82% 18%, rgba(45, 212, 191, 0.16), transparent 30rem),
+          #0a0a0a;
+      }
+
+      .grid-fade {
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(to bottom, black 0%, transparent 78%);
+      }
+
+      .scanline::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          transparent 48%,
+          rgba(45, 212, 191, 0.12) 50%,
+          transparent 52%,
+          transparent
+        );
+        background-size: 100% 9px;
+        opacity: 0.24;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(22px);
+        transition:
+          opacity 700ms ease,
+          transform 700ms ease;
+      }
+
+      .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @keyframes floatNode {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0);
+        }
+        50% {
+          transform: translate3d(0, -14px, 0);
+        }
+      }
+
+      .float-node {
+        animation: floatNode 5.6s ease-in-out infinite;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .reveal,
+        .float-node {
+          opacity: 1;
+          transform: none;
+          animation: none;
+          transition: none;
+        }
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+  <body class="bg-void text-white antialiased">
+    <div class="pointer-events-none fixed inset-0 grid-fade opacity-80"></div>
+
+    <header class="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-void/75 backdrop-blur-xl">
+      <nav class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
+        <a href="#top" class="group flex items-center gap-3" aria-label="OSGeek home">
+          <span
+            class="grid h-10 w-10 place-items-center rounded-lg border border-electric/50 bg-electric/10 font-code text-sm font-bold text-teal shadow-glow"
+          >
+            OS
+          </span>
+          <span class="text-lg font-black tracking-tight">OSGeek</span>
+        </a>
+
+        <div class="hidden items-center gap-8 text-sm font-semibold text-zinc-300 md:flex">
+          <a class="transition hover:text-teal" href="#projects">Projects</a>
+          <a class="transition hover:text-teal" href="#solutions">Solutions</a>
+          <a class="transition hover:text-teal" href="#community">Community</a>
+        </div>
+
+        <a
+          href="#get-started"
+          class="rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-teal hover:shadow-tealGlow"
+        >
+          Get Started
+        </a>
+      </nav>
+    </header>
+
+    <main id="top" class="relative z-10">
+      <section class="mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-5 pb-20 pt-32 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:pt-28">
+        <div class="reveal">
+          <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-3 py-1.5 font-code text-xs font-semibold text-teal">
+            <span class="h-1.5 w-1.5 rounded-full bg-teal shadow-[0_0_18px_#2dd4bf]"></span>
+            open-source · ai implementation · geek culture
+          </p>
+          <h1 class="max-w-4xl text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+            迷茫不知道从何开始？请从
+            <span class="bg-gradient-to-r from-electric to-teal bg-clip-text text-transparent">OSGeek</span>
+            开始
+          </h1>
+          <p class="mt-7 max-w-2xl text-lg leading-8 text-zinc-300 sm:text-xl">
+            Empowering everyone to learn, use, and implement AI in daily life and work through open-source projects.
+          </p>
+          <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="#projects"
+              class="inline-flex items-center justify-center rounded-lg bg-electric px-5 py-3 font-bold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-blue-500"
+            >
+              Explore Projects
+              <span class="ml-2">→</span>
+            </a>
+            <a
+              href="https://github.com/OpenBe-AI/openbe"
+              class="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-5 py-3 font-bold text-white transition hover:-translate-y-0.5 hover:border-teal/60 hover:bg-teal/10"
+            >
+              Star on GitHub
+            </a>
+          </div>
+        </div>
+
+        <div class="reveal relative">
+          <div class="float-node relative mx-auto max-w-xl overflow-hidden rounded-xl">
+            <div class="absolute inset-0 rounded-full bg-electric/20 blur-3xl"></div>
+            <div class="absolute inset-12 rounded-full bg-teal/20 blur-3xl"></div>
+
+            <div class="scanline relative overflow-hidden rounded-xl border border-white/15 bg-zinc-950/85 shadow-2xl shadow-black/50 backdrop-blur">
+              <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <span class="h-3 w-3 rounded-full bg-red-400"></span>
+                  <span class="h-3 w-3 rounded-full bg-yellow-400"></span>
+                  <span class="h-3 w-3 rounded-full bg-teal"></span>
+                </div>
+                <span class="font-code text-xs text-zinc-500">osgeek://ai-node</span>
+              </div>
+
+              <div class="grid gap-6 p-5 sm:p-7">
+                <div class="font-code text-sm leading-7 text-zinc-300">
+                  <p><span class="text-teal">$</span> osgeek init ai-workflow</p>
+                  <p><span class="text-electric">→</span> loading open-source modules...</p>
+                  <p><span class="text-electric">→</span> connecting daily work + life scenarios</p>
+                  <p><span class="text-teal">✓</span> ready for real-world implementation</p>
+                </div>
+
+                <svg viewBox="0 0 520 300" class="h-auto w-full" role="img" aria-label="Floating AI node illustration">
+                  <defs>
+                    <linearGradient id="nodeGradient" x1="0" x2="1">
+                      <stop offset="0%" stop-color="#3b82f6" />
+                      <stop offset="100%" stop-color="#2dd4bf" />
+                    </linearGradient>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <g stroke="url(#nodeGradient)" stroke-width="2" fill="none" opacity="0.86">
+                    <path d="M260 55 L142 120 L142 212 L260 270 L378 212 L378 120 Z" />
+                    <path d="M142 120 L260 178 L378 120" />
+                    <path d="M260 55 L260 178 L260 270" />
+                    <path d="M92 68 L142 120 M428 68 L378 120 M74 238 L142 212 M446 238 L378 212" />
+                  </g>
+                  <g filter="url(#glow)">
+                    <circle cx="260" cy="55" r="10" fill="#2dd4bf" />
+                    <circle cx="142" cy="120" r="9" fill="#3b82f6" />
+                    <circle cx="378" cy="120" r="9" fill="#2dd4bf" />
+                    <circle cx="260" cy="178" r="18" fill="url(#nodeGradient)" />
+                    <circle cx="142" cy="212" r="9" fill="#2dd4bf" />
+                    <circle cx="378" cy="212" r="9" fill="#3b82f6" />
+                    <circle cx="260" cy="270" r="10" fill="#3b82f6" />
+                    <circle cx="92" cy="68" r="7" fill="#3b82f6" />
+                    <circle cx="428" cy="68" r="7" fill="#2dd4bf" />
+                    <circle cx="74" cy="238" r="7" fill="#2dd4bf" />
+                    <circle cx="446" cy="238" r="7" fill="#3b82f6" />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="border-y border-white/10 bg-white/[0.03] py-20">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="reveal max-w-3xl">
+            <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-teal">Projects</p>
+            <h2 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Open projects for practical AI adoption.</h2>
+          </div>
+          <div class="mt-10 grid gap-5 md:grid-cols-3">
+            <a href="https://openbe.ai" class="reveal group rounded-xl border border-white/10 bg-zinc-950/70 p-6 transition hover:-translate-y-1 hover:border-electric/70 hover:shadow-glow">
+              <span class="font-code text-xs font-semibold uppercase text-electric">AI App</span>
+              <h3 class="mt-4 text-2xl font-black">OpenBe.ai</h3>
+              <p class="mt-3 leading-7 text-zinc-400">AI assistant for conversation, health, finance, notes, and task workflows.</p>
+              <span class="mt-7 inline-flex font-bold text-teal">Open project →</span>
+            </a>
+            <a href="https://openbe.org" class="reveal group rounded-xl border border-white/10 bg-zinc-950/70 p-6 transition hover:-translate-y-1 hover:border-teal/70 hover:shadow-tealGlow">
+              <span class="font-code text-xs font-semibold uppercase text-teal">Open Source</span>
+              <h3 class="mt-4 text-2xl font-black">OpenBe.org</h3>
+              <p class="mt-3 leading-7 text-zinc-400">Swarm Intelligence AI Assistant for developers, self-hosting, and integrations.</p>
+              <span class="mt-7 inline-flex font-bold text-teal">View source →</span>
+            </a>
+            <a href="#solutions" class="reveal group rounded-xl border border-white/10 bg-zinc-950/70 p-6 transition hover:-translate-y-1 hover:border-white/30">
+              <span class="font-code text-xs font-semibold uppercase text-zinc-400">Implementation</span>
+              <h3 class="mt-4 text-2xl font-black">OSGeek Labs</h3>
+              <p class="mt-3 leading-7 text-zinc-400">Workshops, deployment paths, and AI workflow experiments for real teams.</p>
+              <span class="mt-7 inline-flex font-bold text-teal">Explore →</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="solutions" class="py-24">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+          <div class="reveal max-w-3xl">
+            <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-electric">Value Proposition</p>
+            <h2 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Built for learners, builders, and teams who ship.</h2>
+          </div>
+
+          <div class="mt-10 grid gap-5 lg:grid-cols-3">
+            <article class="reveal rounded-xl border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-electric/70 hover:bg-electric/10">
+              <div class="mb-6 grid h-12 w-12 place-items-center rounded-lg bg-electric/15 text-electric">
+                <span class="font-code text-lg">01</span>
+              </div>
+              <h3 class="text-2xl font-black">Open Source Driven</h3>
+              <p class="mt-4 leading-7 text-zinc-400">Transparent and customizable AI, with source-first thinking and real ownership of your workflow.</p>
+            </article>
+            <article class="reveal rounded-xl border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-teal/70 hover:bg-teal/10">
+              <div class="mb-6 grid h-12 w-12 place-items-center rounded-lg bg-teal/15 text-teal">
+                <span class="font-code text-lg">02</span>
+              </div>
+              <h3 class="text-2xl font-black">Real-world Implementation</h3>
+              <p class="mt-4 leading-7 text-zinc-400">From concept to workflow, OSGeek focuses on usable systems instead of abstract AI demos.</p>
+            </article>
+            <article id="community" class="reveal rounded-xl border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-white/30 hover:bg-white/[0.07]">
+              <div class="mb-6 grid h-12 w-12 place-items-center rounded-lg bg-white/10 text-white">
+                <span class="font-code text-lg">03</span>
+              </div>
+              <h3 class="text-2xl font-black">Geek Community</h3>
+              <p class="mt-4 leading-7 text-zinc-400">Learning by doing, sharing experiments, and helping more people cross the AI starting line.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="get-started" class="px-5 py-24 sm:px-8">
+        <div class="reveal mx-auto max-w-6xl overflow-hidden rounded-2xl border border-teal/30 bg-gradient-to-br from-electric/20 via-zinc-950 to-teal/20 p-8 shadow-tealGlow sm:p-12">
+          <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-teal">Call to Action</p>
+              <h2 class="mt-4 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">Join the open-source movement. Start where curiosity becomes code.</h2>
+              <p class="mt-5 max-w-2xl leading-8 text-zinc-300">
+                Build with OSGeek, contribute to OpenBe, and turn AI from a buzzword into daily-life and work infrastructure.
+              </p>
+            </div>
+            <a
+              href="https://github.com/OpenBe-AI/openbe"
+              class="inline-flex h-12 items-center justify-center rounded-lg bg-teal px-5 font-black text-black transition hover:-translate-y-0.5 hover:bg-white"
+            >
+              Join on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="relative z-10 border-t border-white/10 px-5 py-8 sm:px-8">
+      <div class="mx-auto grid max-w-7xl gap-4 text-center text-sm text-zinc-500 md:grid-cols-3 md:items-center">
+        <span class="md:text-left">Copyright 2026 Shanghai OpenSource Geek Co., Ltd.</span>
+        <a class="transition hover:text-teal" href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">
+          沪ICP备2024077870号-3
+        </a>
+        <span class="md:text-right">OSGeek · Open-source AI for everyone.</span>
+      </div>
+    </footer>
+
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12 }
+      );
+
+      document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+    </script>
   </body>
 </html>

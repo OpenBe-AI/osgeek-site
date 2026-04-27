@@ -1,6 +1,8 @@
-# 上海开源极客有限公司官网
+# OSGeek Landing Page
 
-Vite + React 单页官网，面向 Vercel 静态部署。
+HTML5 + Tailwind CSS CDN 单页官网，面向 Vercel 静态部署。
+
+品牌主体：Shanghai OpenSource Geek Co., Ltd. / 上海开源极客有限公司
 
 ## 本地运行
 
