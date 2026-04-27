@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
+      id="meta-description"
       name="description"
       content="Shanghai OpenSource Geek Co., Ltd. (OSGeek) helps everyone learn, use, and implement AI through open-source projects."
     />
@@ -123,17 +124,24 @@
         </a>
 
         <div class="hidden items-center gap-8 text-sm font-semibold text-zinc-300 md:flex">
-          <a class="transition hover:text-teal" href="#projects">Projects</a>
-          <a class="transition hover:text-teal" href="#solutions">Solutions</a>
-          <a class="transition hover:text-teal" href="#community">Community</a>
+          <a class="transition hover:text-teal" href="#projects" data-i18n="nav.projects">Projects</a>
+          <a class="transition hover:text-teal" href="#solutions" data-i18n="nav.solutions">Solutions</a>
+          <a class="transition hover:text-teal" href="#community" data-i18n="nav.community">Community</a>
         </div>
 
-        <a
-          href="#get-started"
-          class="rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-teal hover:shadow-tealGlow"
-        >
-          Get Started
-        </a>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="lang-switch flex rounded-lg border border-white/10 bg-white/5 p-1 font-code text-xs font-bold text-zinc-400" aria-label="Language switcher">
+            <button type="button" data-lang="zh" class="rounded-md px-2.5 py-1.5 transition hover:text-white">中文</button>
+            <button type="button" data-lang="en" class="rounded-md px-2.5 py-1.5 transition hover:text-white">EN</button>
+          </div>
+          <a
+            href="#get-started"
+            class="rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-teal hover:shadow-tealGlow"
+            data-i18n="nav.cta"
+          >
+            Get Started
+          </a>
+        </div>
       </nav>
     </header>
 
@@ -142,14 +150,14 @@
         <div class="reveal">
           <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-3 py-1.5 font-code text-xs font-semibold text-teal">
             <span class="h-1.5 w-1.5 rounded-full bg-teal shadow-[0_0_18px_#2dd4bf]"></span>
-            open-source · ai implementation · geek culture
+            <span data-i18n="hero.eyebrow">open-source · ai implementation · geek culture</span>
           </p>
-          <h1 class="max-w-4xl text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+          <h1 class="max-w-4xl text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl" data-i18n-html="hero.title">
             迷茫不知道从何开始？请从
             <span class="bg-gradient-to-r from-electric to-teal bg-clip-text text-transparent">OSGeek</span>
             开始
           </h1>
-          <p class="mt-7 max-w-2xl text-lg leading-8 text-zinc-300 sm:text-xl">
+          <p class="mt-7 max-w-2xl text-lg leading-8 text-zinc-300 sm:text-xl" data-i18n="hero.subtitle">
             Empowering everyone to learn, use, and implement AI in daily life and work through open-source projects.
           </p>
           <div class="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -157,14 +165,14 @@
               href="#projects"
               class="inline-flex items-center justify-center rounded-lg bg-electric px-5 py-3 font-bold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-blue-500"
             >
-              Explore Projects
+              <span data-i18n="hero.primary">Explore Projects</span>
               <span class="ml-2">→</span>
             </a>
             <a
               href="https://github.com/OpenBe-AI/openbe"
               class="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-5 py-3 font-bold text-white transition hover:-translate-y-0.5 hover:border-teal/60 hover:bg-teal/10"
             >
-              Star on GitHub
+              <span data-i18n="hero.secondary">Star on GitHub</span>
             </a>
           </div>
         </div>
@@ -181,15 +189,15 @@
                   <span class="h-3 w-3 rounded-full bg-yellow-400"></span>
                   <span class="h-3 w-3 rounded-full bg-teal"></span>
                 </div>
-                <span class="font-code text-xs text-zinc-500">osgeek://ai-node</span>
+                <span class="font-code text-xs text-zinc-500" data-i18n="terminal.title">osgeek://ai-node</span>
               </div>
 
               <div class="grid gap-6 p-5 sm:p-7">
                 <div class="font-code text-sm leading-7 text-zinc-300">
-                  <p><span class="text-teal">$</span> osgeek init ai-workflow</p>
-                  <p><span class="text-electric">→</span> loading open-source modules...</p>
-                  <p><span class="text-electric">→</span> connecting daily work + life scenarios</p>
-                  <p><span class="text-teal">✓</span> ready for real-world implementation</p>
+                  <p><span class="text-teal">$</span> <span data-i18n="terminal.line1">osgeek init ai-workflow</span></p>
+                  <p><span class="text-electric">→</span> <span data-i18n="terminal.line2">loading open-source modules...</span></p>
+                  <p><span class="text-electric">→</span> <span data-i18n="terminal.line3">connecting daily work + life scenarios</span></p>
+                  <p><span class="text-teal">✓</span> <span data-i18n="terminal.line4">ready for real-world implementation</span></p>
                 </div>
 
                 <svg viewBox="0 0 520 300" class="h-auto w-full" role="img" aria-label="Floating AI node illustration">
@@ -235,27 +243,27 @@
       <section id="projects" class="border-y border-white/10 bg-white/[0.03] py-20">
         <div class="mx-auto max-w-7xl px-5 sm:px-8">
           <div class="reveal max-w-3xl">
-            <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-teal">Projects</p>
-            <h2 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Open projects for practical AI adoption.</h2>
+            <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-teal" data-i18n="projects.kicker">Projects</p>
+            <h2 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl" data-i18n="projects.title">Open projects for practical AI adoption.</h2>
           </div>
           <div class="mt-10 grid gap-5 md:grid-cols-3">
             <a href="https://openbe.ai" class="reveal group rounded-xl border border-white/10 bg-zinc-950/70 p-6 transition hover:-translate-y-1 hover:border-electric/70 hover:shadow-glow">
-              <span class="font-code text-xs font-semibold uppercase text-electric">AI App</span>
+              <span class="font-code text-xs font-semibold uppercase text-electric" data-i18n="projects.card1.label">AI App</span>
               <h3 class="mt-4 text-2xl font-black">OpenBe.ai</h3>
-              <p class="mt-3 leading-7 text-zinc-400">AI assistant for conversation, health, finance, notes, and task workflows.</p>
-              <span class="mt-7 inline-flex font-bold text-teal">Open project →</span>
+              <p class="mt-3 leading-7 text-zinc-400" data-i18n="projects.card1.body">AI assistant for conversation, health, finance, notes, and task workflows.</p>
+              <span class="mt-7 inline-flex font-bold text-teal" data-i18n="projects.card1.link">Open project →</span>
             </a>
             <a href="https://openbe.org" class="reveal group rounded-xl border border-white/10 bg-zinc-950/70 p-6 transition hover:-translate-y-1 hover:border-teal/70 hover:shadow-tealGlow">
-              <span class="font-code text-xs font-semibold uppercase text-teal">Open Source</span>
+              <span class="font-code text-xs font-semibold uppercase text-teal" data-i18n="projects.card2.label">Open Source</span>
               <h3 class="mt-4 text-2xl font-black">OpenBe.org</h3>
-              <p class="mt-3 leading-7 text-zinc-400">Swarm Intelligence AI Assistant for developers, self-hosting, and integrations.</p>
-              <span class="mt-7 inline-flex font-bold text-teal">View source →</span>
+              <p class="mt-3 leading-7 text-zinc-400" data-i18n="projects.card2.body">Swarm Intelligence AI Assistant for developers, self-hosting, and integrations.</p>
+              <span class="mt-7 inline-flex font-bold text-teal" data-i18n="projects.card2.link">View source →</span>
             </a>
             <a href="#solutions" class="reveal group rounded-xl border border-white/10 bg-zinc-950/70 p-6 transition hover:-translate-y-1 hover:border-white/30">
-              <span class="font-code text-xs font-semibold uppercase text-zinc-400">Implementation</span>
+              <span class="font-code text-xs font-semibold uppercase text-zinc-400" data-i18n="projects.card3.label">Implementation</span>
               <h3 class="mt-4 text-2xl font-black">OSGeek Labs</h3>
-              <p class="mt-3 leading-7 text-zinc-400">Workshops, deployment paths, and AI workflow experiments for real teams.</p>
-              <span class="mt-7 inline-flex font-bold text-teal">Explore →</span>
+              <p class="mt-3 leading-7 text-zinc-400" data-i18n="projects.card3.body">Workshops, deployment paths, and AI workflow experiments for real teams.</p>
+              <span class="mt-7 inline-flex font-bold text-teal" data-i18n="projects.card3.link">Explore →</span>
             </a>
           </div>
         </div>
@@ -264,8 +272,8 @@
       <section id="solutions" class="py-24">
         <div class="mx-auto max-w-7xl px-5 sm:px-8">
           <div class="reveal max-w-3xl">
-            <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-electric">Value Proposition</p>
-            <h2 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Built for learners, builders, and teams who ship.</h2>
+            <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-electric" data-i18n="solutions.kicker">Value Proposition</p>
+            <h2 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl" data-i18n="solutions.title">Built for learners, builders, and teams who ship.</h2>
           </div>
 
           <div class="mt-10 grid gap-5 lg:grid-cols-3">
@@ -273,22 +281,22 @@
               <div class="mb-6 grid h-12 w-12 place-items-center rounded-lg bg-electric/15 text-electric">
                 <span class="font-code text-lg">01</span>
               </div>
-              <h3 class="text-2xl font-black">Open Source Driven</h3>
-              <p class="mt-4 leading-7 text-zinc-400">Transparent and customizable AI, with source-first thinking and real ownership of your workflow.</p>
+              <h3 class="text-2xl font-black" data-i18n="solutions.card1.title">Open Source Driven</h3>
+              <p class="mt-4 leading-7 text-zinc-400" data-i18n="solutions.card1.body">Transparent and customizable AI, with source-first thinking and real ownership of your workflow.</p>
             </article>
             <article class="reveal rounded-xl border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-teal/70 hover:bg-teal/10">
               <div class="mb-6 grid h-12 w-12 place-items-center rounded-lg bg-teal/15 text-teal">
                 <span class="font-code text-lg">02</span>
               </div>
-              <h3 class="text-2xl font-black">Real-world Implementation</h3>
-              <p class="mt-4 leading-7 text-zinc-400">From concept to workflow, OSGeek focuses on usable systems instead of abstract AI demos.</p>
+              <h3 class="text-2xl font-black" data-i18n="solutions.card2.title">Real-world Implementation</h3>
+              <p class="mt-4 leading-7 text-zinc-400" data-i18n="solutions.card2.body">From concept to workflow, OSGeek focuses on usable systems instead of abstract AI demos.</p>
             </article>
             <article id="community" class="reveal rounded-xl border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-white/30 hover:bg-white/[0.07]">
               <div class="mb-6 grid h-12 w-12 place-items-center rounded-lg bg-white/10 text-white">
                 <span class="font-code text-lg">03</span>
               </div>
-              <h3 class="text-2xl font-black">Geek Community</h3>
-              <p class="mt-4 leading-7 text-zinc-400">Learning by doing, sharing experiments, and helping more people cross the AI starting line.</p>
+              <h3 class="text-2xl font-black" data-i18n="solutions.card3.title">Geek Community</h3>
+              <p class="mt-4 leading-7 text-zinc-400" data-i18n="solutions.card3.body">Learning by doing, sharing experiments, and helping more people cross the AI starting line.</p>
             </article>
           </div>
         </div>
@@ -298,9 +306,9 @@
         <div class="reveal mx-auto max-w-6xl overflow-hidden rounded-2xl border border-teal/30 bg-gradient-to-br from-electric/20 via-zinc-950 to-teal/20 p-8 shadow-tealGlow sm:p-12">
           <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-teal">Call to Action</p>
-              <h2 class="mt-4 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">Join the open-source movement. Start where curiosity becomes code.</h2>
-              <p class="mt-5 max-w-2xl leading-8 text-zinc-300">
+              <p class="font-code text-sm font-semibold uppercase tracking-[0.28em] text-teal" data-i18n="cta.kicker">Call to Action</p>
+              <h2 class="mt-4 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl" data-i18n="cta.title">Join the open-source movement. Start where curiosity becomes code.</h2>
+              <p class="mt-5 max-w-2xl leading-8 text-zinc-300" data-i18n="cta.body">
                 Build with OSGeek, contribute to OpenBe, and turn AI from a buzzword into daily-life and work infrastructure.
               </p>
             </div>
@@ -308,7 +316,7 @@
               href="https://github.com/OpenBe-AI/openbe"
               class="inline-flex h-12 items-center justify-center rounded-lg bg-teal px-5 font-black text-black transition hover:-translate-y-0.5 hover:bg-white"
             >
-              Join on GitHub
+              <span data-i18n="cta.button">Join on GitHub</span>
             </a>
           </div>
         </div>
@@ -317,15 +325,137 @@
 
     <footer class="relative z-10 border-t border-white/10 px-5 py-8 sm:px-8">
       <div class="mx-auto grid max-w-7xl gap-4 text-center text-sm text-zinc-500 md:grid-cols-3 md:items-center">
-        <span class="md:text-left">Copyright 2026 Shanghai OpenSource Geek Co., Ltd.</span>
+        <span class="md:text-left" data-i18n="footer.copyright">Copyright 2026 Shanghai OpenSource Geek Co., Ltd.</span>
         <a class="transition hover:text-teal" href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">
           沪ICP备2024077870号-3
         </a>
-        <span class="md:text-right">OSGeek · Open-source AI for everyone.</span>
+        <span class="md:text-right" data-i18n="footer.tagline">OSGeek · Open-source AI for everyone.</span>
       </div>
     </footer>
 
     <script>
+      const translations = {
+        zh: {
+          "meta.title": "OSGeek | 上海开源极客有限公司",
+          "meta.description": "上海开源极客有限公司（OSGeek）通过开源项目帮助每个人学习、使用并落地 AI。",
+          "nav.projects": "项目",
+          "nav.solutions": "方案",
+          "nav.community": "社区",
+          "nav.cta": "开始",
+          "hero.eyebrow": "开源 · AI 落地 · 极客文化",
+          "hero.title": "迷茫不知道从何开始？请从 <span class=\"bg-gradient-to-r from-electric to-teal bg-clip-text text-transparent\">OSGeek</span> 开始",
+          "hero.subtitle": "通过开源项目，帮助每个人在日常生活和工作中学习、使用并真正落地 AI。",
+          "hero.primary": "探索项目",
+          "hero.secondary": "GitHub 点星",
+          "terminal.title": "osgeek://ai-node",
+          "terminal.line1": "osgeek init ai-workflow",
+          "terminal.line2": "加载开源模块...",
+          "terminal.line3": "连接日常生活与工作场景",
+          "terminal.line4": "已准备好进入真实落地",
+          "projects.kicker": "Projects",
+          "projects.title": "为 AI 实践而生的开源项目。",
+          "projects.card1.label": "AI 应用",
+          "projects.card1.body": "覆盖对话、健康、财务、笔记和任务工作流的 AI 助手。",
+          "projects.card1.link": "打开项目 →",
+          "projects.card2.label": "开源项目",
+          "projects.card2.body": "面向开发者、自托管和集成场景的 Swarm Intelligence AI Assistant。",
+          "projects.card2.link": "查看源码 →",
+          "projects.card3.label": "落地实践",
+          "projects.card3.body": "面向真实团队的工作坊、部署路径和 AI 工作流实验。",
+          "projects.card3.link": "了解更多 →",
+          "solutions.kicker": "Value Proposition",
+          "solutions.title": "为学习者、建设者和真正交付的团队而设计。",
+          "solutions.card1.title": "开源驱动",
+          "solutions.card1.body": "透明、可定制的 AI，强调源码优先思维和对工作流的真实掌控。",
+          "solutions.card2.title": "真实场景落地",
+          "solutions.card2.body": "从概念到工作流，OSGeek 关注可用系统，而不是停留在 AI 演示。",
+          "solutions.card3.title": "极客社区",
+          "solutions.card3.body": "在动手实践中学习，分享实验，帮助更多人跨过 AI 起点。",
+          "cta.kicker": "Call to Action",
+          "cta.title": "加入开源运动。让好奇心变成代码。",
+          "cta.body": "和 OSGeek 一起建设，参与 OpenBe，把 AI 从流行词变成日常生活和工作的基础设施。",
+          "cta.button": "加入 GitHub",
+          "footer.copyright": "Copyright 2026 Shanghai OpenSource Geek Co., Ltd.",
+          "footer.tagline": "OSGeek · 人人可用的开源 AI。",
+        },
+        en: {
+          "meta.title": "OSGeek | Shanghai OpenSource Geek Co., Ltd.",
+          "meta.description": "Shanghai OpenSource Geek Co., Ltd. (OSGeek) helps everyone learn, use, and implement AI through open-source projects.",
+          "nav.projects": "Projects",
+          "nav.solutions": "Solutions",
+          "nav.community": "Community",
+          "nav.cta": "Get Started",
+          "hero.eyebrow": "open-source · ai implementation · geek culture",
+          "hero.title": "Don't know where to start? Start with <span class=\"bg-gradient-to-r from-electric to-teal bg-clip-text text-transparent\">OSGeek</span>",
+          "hero.subtitle": "Empowering everyone to learn, use, and implement AI in daily life and work through open-source projects.",
+          "hero.primary": "Explore Projects",
+          "hero.secondary": "Star on GitHub",
+          "terminal.title": "osgeek://ai-node",
+          "terminal.line1": "osgeek init ai-workflow",
+          "terminal.line2": "loading open-source modules...",
+          "terminal.line3": "connecting daily work + life scenarios",
+          "terminal.line4": "ready for real-world implementation",
+          "projects.kicker": "Projects",
+          "projects.title": "Open projects for practical AI adoption.",
+          "projects.card1.label": "AI App",
+          "projects.card1.body": "AI assistant for conversation, health, finance, notes, and task workflows.",
+          "projects.card1.link": "Open project →",
+          "projects.card2.label": "Open Source",
+          "projects.card2.body": "Swarm Intelligence AI Assistant for developers, self-hosting, and integrations.",
+          "projects.card2.link": "View source →",
+          "projects.card3.label": "Implementation",
+          "projects.card3.body": "Workshops, deployment paths, and AI workflow experiments for real teams.",
+          "projects.card3.link": "Explore →",
+          "solutions.kicker": "Value Proposition",
+          "solutions.title": "Built for learners, builders, and teams who ship.",
+          "solutions.card1.title": "Open Source Driven",
+          "solutions.card1.body": "Transparent and customizable AI, with source-first thinking and real ownership of your workflow.",
+          "solutions.card2.title": "Real-world Implementation",
+          "solutions.card2.body": "From concept to workflow, OSGeek focuses on usable systems instead of abstract AI demos.",
+          "solutions.card3.title": "Geek Community",
+          "solutions.card3.body": "Learning by doing, sharing experiments, and helping more people cross the AI starting line.",
+          "cta.kicker": "Call to Action",
+          "cta.title": "Join the open-source movement. Start where curiosity becomes code.",
+          "cta.body": "Build with OSGeek, contribute to OpenBe, and turn AI from a buzzword into daily-life and work infrastructure.",
+          "cta.button": "Join on GitHub",
+          "footer.copyright": "Copyright 2026 Shanghai OpenSource Geek Co., Ltd.",
+          "footer.tagline": "OSGeek · Open-source AI for everyone.",
+        },
+      };
+
+      const setLanguage = (language) => {
+        const dictionary = translations[language] || translations.zh;
+        document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
+        document.title = dictionary["meta.title"];
+        document.getElementById("meta-description").setAttribute("content", dictionary["meta.description"]);
+
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          const key = element.getAttribute("data-i18n");
+          if (dictionary[key]) element.textContent = dictionary[key];
+        });
+
+        document.querySelectorAll("[data-i18n-html]").forEach((element) => {
+          const key = element.getAttribute("data-i18n-html");
+          if (dictionary[key]) element.innerHTML = dictionary[key];
+        });
+
+        document.querySelectorAll("[data-lang]").forEach((button) => {
+          const isActive = button.getAttribute("data-lang") === language;
+          button.classList.toggle("bg-teal", isActive);
+          button.classList.toggle("text-black", isActive);
+          button.classList.toggle("text-zinc-400", !isActive);
+        });
+
+        localStorage.setItem("osgeek-language", language);
+      };
+
+      const initialLanguage = localStorage.getItem("osgeek-language") || "zh";
+      setLanguage(initialLanguage);
+
+      document.querySelectorAll("[data-lang]").forEach((button) => {
+        button.addEventListener("click", () => setLanguage(button.getAttribute("data-lang")));
+      });
+
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
