@@ -174,6 +174,7 @@
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
           <section id="overviewPanel" class="grid gap-6"></section>
           <section id="usersPanel" class="hidden grid gap-5"></section>
+          <section id="usagePanel" class="hidden grid gap-5"></section>
           <section id="subscriptionsPanel" class="hidden grid gap-5"></section>
           <section id="modelsPanel" class="hidden grid gap-5"></section>
           <section id="plansPanel" class="hidden grid gap-5"></section>
@@ -209,6 +210,7 @@
 
     <script type="module">
       import {
+        BarChart3,
         BadgeCheck,
         CheckCircle2,
         Clock3,
@@ -233,6 +235,7 @@
           createIcons({
             icons: {
               BadgeCheck,
+              BarChart3,
               CheckCircle2,
               Clock3,
               Cpu,
@@ -264,10 +267,14 @@
           subscriptions: [],
           plans: [],
           usage: { total: { requests: 0, tokens: 0 }, byUser: {} },
+          usageEvents: [],
         },
         filters: {
           users: "",
           phoneUsers: "",
+          usageUser: "",
+          usageModel: "",
+          usageCapability: "",
         },
         phoneProvision: null,
         drawer: null,
@@ -276,6 +283,7 @@
       const sections = [
         { id: "overview", label: "概览", icon: "layout-dashboard", kicker: "Overview" },
         { id: "users", label: "用户", icon: "users", kicker: "Users" },
+        { id: "usage", label: "用量", icon: "bar-chart-3", kicker: "Usage" },
         { id: "subscriptions", label: "订阅", icon: "badge-check", kicker: "Subscriptions" },
         { id: "models", label: "AI 模型", icon: "cpu", kicker: "Models" },
         { id: "plans", label: "套餐", icon: "credit-card", kicker: "Plans" },
@@ -330,6 +338,12 @@
         subscriptions: "subscriptions",
         plans: "pricing_plans",
       };
+
+      const quotaPresets = [
+        { id: "manual_trial", label: "内测额度", quota: 100000, days: 30 },
+        { id: "monthly_member", label: "月度会员", quota: 1000000, days: 30 },
+        { id: "pro_member", label: "专业会员", quota: 5000000, days: 30 },
+      ];
 
       const $ = (selector) => document.querySelector(selector);
       const escapeHtml = (value = "") =>
@@ -453,6 +467,12 @@
         return Number(value || 0).toLocaleString();
       }
 
+      function formatDateTime(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+      }
+
       function recordId() {
         const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         const bytes = new Uint8Array(14);
@@ -494,8 +514,39 @@
         return { total, byUser };
       }
 
+      function normalizeUsageEvents(raw = {}) {
+        return (raw.items || raw.events || []).map((item) => ({
+          id: item.id || `${item.ts}-${item.user_id || item.userId || ""}`,
+          ts: item.ts || item.created || "",
+          userId: item.user_id || item.userId || "",
+          model: item.model || "-",
+          capability: item.capability || "-",
+          input: numericField(item, ["input", "input_tokens", "inputTokens"]),
+          output: numericField(item, ["output", "output_tokens", "outputTokens"]),
+          total: numericField(item, ["total", "total_tokens", "totalTokens"]),
+        }));
+      }
+
       function usageForUser(userId) {
         return state.data.usage.byUser[userId] || { requests: 0, tokens: 0, input: 0, output: 0, lastUsed: "" };
+      }
+
+      function userForUsage(userId) {
+        return state.data.users.find((user) => user.id === userId) || null;
+      }
+
+      function visibleUsageEvents() {
+        return state.data.usageEvents.filter((event) => {
+          const user = userForUsage(event.userId);
+          return (
+            matchesSearch(
+              [event.userId, user?.email, user?.name, phoneForUser(user || {}), formatPhone(phoneForUser(user || {}))],
+              state.filters.usageUser,
+            ) &&
+            matchesSearch([event.model], state.filters.usageModel) &&
+            matchesSearch([event.capability], state.filters.usageCapability)
+          );
+        });
       }
 
       function subscriptionForUser(userId) {
@@ -520,19 +571,24 @@
         return tag(status || "无订阅", tone);
       }
 
-      function manualTrialDefaults(userId) {
+      function quotaPresetDefaults(presetId, userId = "") {
+        const preset = quotaPresets.find((item) => item.id === presetId) || quotaPresets[0];
         const now = Math.floor(Date.now() / 1000);
-        const thirtyDays = 30 * 24 * 60 * 60;
+        const seconds = Number(preset.days || 30) * 24 * 60 * 60;
         return {
           userId,
           status: "active",
-          monthlyTokenQuota: 100000,
+          monthlyTokenQuota: preset.quota,
           usedTokens: 0,
           startDate: now,
-          endDate: now + thirtyDays,
-          resetDate: now + thirtyDays,
-          plan: "manual_trial",
+          endDate: now + seconds,
+          resetDate: now + seconds,
+          plan: preset.id,
         };
+      }
+
+      function manualTrialDefaults(userId) {
+        return quotaPresetDefaults("manual_trial", userId);
       }
 
       function userStatus(user) {
@@ -819,6 +875,21 @@
         }
       }
 
+      function refreshUsagePanel(focusId = "") {
+        renderUsage();
+        bindActions();
+        lucide.createIcons();
+        if (focusId) {
+          requestAnimationFrame(() => {
+            const input = document.getElementById(focusId);
+            if (!input) return;
+            input.focus();
+            const length = input.value.length;
+            input.setSelectionRange(length, length);
+          });
+        }
+      }
+
       function renderModels() {
         const rows = state.data.models
           .slice()
@@ -880,6 +951,48 @@
         );
       }
 
+      function renderUsage() {
+        const events = visibleUsageEvents();
+        const rows = events.map((event) => {
+          const user = userForUsage(event.userId);
+          const phone = phoneForUser(user || {});
+          return `
+            <tr>
+              <td class="px-4 py-3">
+                <p class="max-w-[18rem] truncate font-bold" title="${escapeHtml(user?.email || event.userId || "-")}">${escapeHtml(user?.email || event.userId || "-")}</p>
+                <p class="font-code text-xs text-zinc-500">${escapeHtml(phone ? formatPhone(phone) : event.userId || "-")}</p>
+              </td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-400">${escapeHtml(formatDateTime(event.ts))}</td>
+              <td class="px-4 py-3">${tag(event.model || "-", "blue")}</td>
+              <td class="px-4 py-3">${tag(event.capability || "-", event.capability === "chat" ? "teal" : "zinc")}</td>
+              <td class="px-4 py-3 font-code text-xs text-zinc-300">
+                <p>${formatNumber(event.total)} tokens</p>
+                <p class="text-zinc-500">in ${formatNumber(event.input)} / out ${formatNumber(event.output)}</p>
+              </td>
+            </tr>
+          `;
+        });
+        $("#usagePanel").innerHTML = panelShell(
+          "用量明细",
+          `<button id="reloadUsageEvents" class="inline-flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-bold text-zinc-200 transition hover:border-teal/50 hover:text-white"><i data-lucide="refresh-cw" class="h-4 w-4"></i>刷新明细</button>`,
+          `<div class="grid gap-3 rounded-lg border border-white/10 bg-white/[0.045] p-4 md:grid-cols-3">
+            <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+              用户
+              <input id="usageUserSearch" class="field font-code text-sm" value="${escapeHtml(state.filters.usageUser)}" placeholder="手机号 / 邮箱 / 用户 ID" />
+            </label>
+            <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+              模型
+              <input id="usageModelSearch" class="field font-code text-sm" value="${escapeHtml(state.filters.usageModel)}" placeholder="deepseek-v4-flash" />
+            </label>
+            <label class="grid gap-2 text-sm font-semibold text-zinc-300">
+              能力
+              <input id="usageCapabilitySearch" class="field font-code text-sm" value="${escapeHtml(state.filters.usageCapability)}" placeholder="chat / code / summary" />
+            </label>
+            <p class="md:col-span-3 text-xs text-zinc-500">当前显示 ${events.length} / ${state.data.usageEvents.length} 条最近请求</p>
+          </div>${table(["用户", "时间", "模型", "能力", "Token"], rows, "暂无匹配的用量明细")}`,
+        );
+      }
+
       function renderPlans() {
         const rows = state.data.plans
           .slice()
@@ -913,6 +1026,7 @@
         renderNav();
         renderOverview();
         renderUsers();
+        renderUsage();
         renderSubscriptions();
         renderModels();
         renderPlans();
@@ -947,6 +1061,9 @@
         document.querySelectorAll("[data-test-model]").forEach((btn) => {
           btn.addEventListener("click", () => testModel(btn.dataset.testModel));
         });
+        document.querySelectorAll("[data-quota-preset]").forEach((btn) => {
+          btn.addEventListener("click", () => applyQuotaPreset(btn.dataset.quotaPreset));
+        });
         $("#phoneProvisionForm")?.addEventListener("submit", createPhoneUser);
         $("#userSearch")?.addEventListener("input", (event) => {
           state.filters.users = event.currentTarget.value;
@@ -956,6 +1073,19 @@
           state.filters.phoneUsers = event.currentTarget.value;
           refreshUsersPanel("phoneUserSearch");
         });
+        $("#usageUserSearch")?.addEventListener("input", (event) => {
+          state.filters.usageUser = event.currentTarget.value;
+          refreshUsagePanel("usageUserSearch");
+        });
+        $("#usageModelSearch")?.addEventListener("input", (event) => {
+          state.filters.usageModel = event.currentTarget.value;
+          refreshUsagePanel("usageModelSearch");
+        });
+        $("#usageCapabilitySearch")?.addEventListener("input", (event) => {
+          state.filters.usageCapability = event.currentTarget.value;
+          refreshUsagePanel("usageCapabilitySearch");
+        });
+        $("#reloadUsageEvents")?.addEventListener("click", () => loadUsageEvents().then(() => refreshUsagePanel()).catch((error) => toast(error.message, "error")));
         document.querySelectorAll("[data-copy-code]").forEach((btn) => {
           btn.addEventListener("click", async () => {
             await navigator.clipboard.writeText(btn.dataset.copyCode || "");
@@ -992,10 +1122,50 @@
           .filter((field) => !(field.createOnly && id))
           .map((field) => renderField(field, item || {}, Boolean(id)))
           .join("");
+        if (kind === "subscriptions") {
+          $("#drawerFields").insertAdjacentHTML("afterbegin", renderQuotaPresetButtons());
+        }
         $("#drawerBackdrop").classList.remove("hidden");
         $("#drawer").classList.remove("translate-x-full");
         $("#drawer").classList.add("drawer-open");
         lucide.createIcons();
+        document.querySelectorAll("[data-quota-preset]").forEach((btn) => {
+          btn.addEventListener("click", () => applyQuotaPreset(btn.dataset.quotaPreset));
+        });
+      }
+
+      function renderQuotaPresetButtons() {
+        return `
+          <div class="grid gap-3 rounded-lg border border-white/10 bg-white/[0.045] p-4">
+            <p class="text-sm font-black text-zinc-200">快捷额度</p>
+            <div class="grid gap-2 sm:grid-cols-3">
+              ${quotaPresets
+                .map(
+                  (preset) => `
+                    <button type="button" data-quota-preset="${preset.id}" class="rounded-lg border border-white/10 bg-white/5 p-3 text-left transition hover:border-teal/50 hover:bg-teal/10">
+                      <p class="text-sm font-black text-white">${escapeHtml(preset.label)}</p>
+                      <p class="mt-1 font-code text-xs text-zinc-400">${formatNumber(preset.quota)} tokens / ${preset.days} 天</p>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function applyQuotaPreset(presetId) {
+        const form = $("#drawerForm");
+        if (!form) return;
+        const currentUserId = form.elements.userId?.value || state.drawer?.item?.userId || "";
+        const values = quotaPresetDefaults(presetId, currentUserId);
+        Object.entries(values).forEach(([key, value]) => {
+          const field = fields.subscriptions.find((item) => item.name === key);
+          const input = form.elements[key];
+          if (!field || !input) return;
+          input.value = valueForInput(value, field);
+        });
+        toast("已填入快捷额度", "success");
       }
 
       function renderField(field, item, editing) {
@@ -1145,14 +1315,20 @@
         }
       }
 
+      async function loadUsageEvents() {
+        const usageEvents = await api("/v1/admin/usage-events?days=30&limit=200").catch(() => ({ items: [] }));
+        state.data.usageEvents = normalizeUsageEvents(usageEvents);
+      }
+
       async function loadData() {
-        const [users, phoneUsers, models, subscriptions, plans, usage] = await Promise.all([
+        const [users, phoneUsers, models, subscriptions, plans, usage, usageEvents] = await Promise.all([
           list("users", "page=1&perPage=100&sort=-created"),
           api("/v1/admin/phone-users").catch(() => ({ items: [] })),
           list("ai_models", "page=1&perPage=100&sort=sortOrder,modelId"),
           list("subscriptions", "page=1&perPage=100&sort=-endDate"),
           list("pricing_plans", "page=1&perPage=100&sort=sortOrder,planId"),
           api("/v1/admin/usage").catch(() => ({})),
+          api("/v1/admin/usage-events?days=30&limit=200").catch(() => ({ items: [] })),
         ]);
         state.data.users = users.items || [];
         state.data.phoneUsers = phoneUsers.items || [];
@@ -1160,6 +1336,7 @@
         state.data.subscriptions = subscriptions.items || [];
         state.data.plans = plans.items || [];
         state.data.usage = normalizeUsage(usage);
+        state.data.usageEvents = normalizeUsageEvents(usageEvents);
         renderAll();
       }
 
