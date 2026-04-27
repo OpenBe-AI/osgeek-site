@@ -395,6 +395,23 @@
         return `<span class="inline-flex items-center rounded-md border px-2 py-1 text-xs font-bold ${colors[tone]}">${escapeHtml(text)}</span>`;
       }
 
+      function userStatus(user) {
+        if (user.verified) {
+          return `
+            <span class="inline-flex items-center gap-1.5 rounded-md border border-teal/25 bg-teal/10 px-2.5 py-1 text-xs font-bold text-teal">
+              <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
+              已验证
+            </span>
+          `;
+        }
+        return `
+          <span class="inline-flex items-center gap-1.5 rounded-md border border-amber-400/25 bg-amber-400/10 px-2.5 py-1 text-xs font-bold text-amber-200">
+            <i data-lucide="clock-3" class="h-3.5 w-3.5"></i>
+            待验证
+          </span>
+        `;
+      }
+
       function panelShell(title, actions, content) {
         return `
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -451,7 +468,7 @@
                     <tr>
                       <td class="px-4 py-3 font-semibold">${escapeHtml(u.email || "-")}</td>
                       <td class="px-4 py-3 text-zinc-300">${escapeHtml(u.name || "-")}</td>
-                      <td class="px-4 py-3">${tag(u.verified ? "verified" : "pending", u.verified ? "teal" : "zinc")}</td>
+                      <td class="px-4 py-3">${userStatus(u)}</td>
                       <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatDate(u.created))}</td>
                     </tr>
                   `,
@@ -482,7 +499,7 @@
                 <p class="font-code text-xs text-zinc-500">${escapeHtml(u.id)}</p>
               </td>
               <td class="px-4 py-3 text-zinc-300">${escapeHtml(u.name || "-")}</td>
-              <td class="px-4 py-3">${tag(u.verified ? "verified" : "pending", u.verified ? "teal" : "zinc")}</td>
+              <td class="px-4 py-3">${userStatus(u)}</td>
               <td class="px-4 py-3 font-code text-xs text-zinc-500">${escapeHtml(formatDate(u.created))}</td>
               <td class="px-4 py-3 text-right">
                 <button data-edit="users" data-id="${u.id}" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold transition hover:border-teal/50">编辑</button>
