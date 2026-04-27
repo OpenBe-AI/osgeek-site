@@ -24,6 +24,13 @@ gh auth login -h github.com
 gh repo create osgeek-site --public --source=. --remote=origin --push
 ```
 
+如果继续使用 SSH，当前机器到 GitHub 的 22 端口不可用，可以用 443 端口远程地址：
+
+```bash
+git remote add origin ssh://git@ssh.github.com:443/OpenBe-AI/osgeek-site.git
+git push -u origin main
+```
+
 Vercel 登录后：
 
 ```bash
