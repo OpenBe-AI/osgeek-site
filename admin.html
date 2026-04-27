@@ -87,7 +87,7 @@
       }
 
       .drawer-open {
-        transform: translateX(0);
+        transform: translateX(0) !important;
       }
     </style>
   </head>
@@ -698,6 +698,7 @@
           .map((field) => renderField(field, item || {}, Boolean(id)))
           .join("");
         $("#drawerBackdrop").classList.remove("hidden");
+        $("#drawer").classList.remove("translate-x-full");
         $("#drawer").classList.add("drawer-open");
         lucide.createIcons();
       }
@@ -749,6 +750,7 @@
         state.drawer = null;
         $("#drawerBackdrop").classList.add("hidden");
         $("#drawer").classList.remove("drawer-open");
+        $("#drawer").classList.add("translate-x-full");
         $("#drawerForm").reset();
       }
 
